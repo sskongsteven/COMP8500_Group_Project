@@ -2,7 +2,61 @@
   {
     "product_id": "P001",
     "product_name": "Notebook",
-    "price": "12.50",
-    "stock_quantity": 17
+    "price": "25.00",
+    "stock_quantity": 11
+  },
+  {
+    "product_id": "P002",
+    "product_name": "Ballpoint Pen",
+    "price": "6.00",
+    "stock_quantity": 100
+  },
+  {
+    "product_id": "P003",
+    "product_name": "Pencil",
+    "price": "4.00",
+    "stock_quantity": 120
+  },
+  {
+    "product_id": "P004",
+    "product_name": "Eraser",
+    "price": "5.00",
+    "stock_quantity": 75
+  },
+  {
+    "product_id": "P005",
+    "product_name": "Highlighter",
+    "price": "12.00",
+    "stock_quantity": 45
+  },
+  {
+    "product_id": "P006",
+    "product_name": "Sticky Notes",
+    "price": "18.00",
+    "stock_quantity": 60
+  },
+  {
+    "product_id": "P007",
+    "product_name": "A4 Paper Pack",
+    "price": "45.00",
+    "stock_quantity": 30
+  },
+  {
+    "product_id": "P008",
+    "product_name": "File Folder",
+    "price": "12.00",
+    "stock_quantity": 50
+  },
+  {
+    "product_id": "P009",
+    "product_name": "Stapler",
+    "price": "38.00",
+    "stock_quantity": 25
+  },
+  {
+    "product_id": "P010",
+    "product_name": "Paper Clips Box",
+    "price": "12.00",
+    "stock_quantity": 40
   }
 ]
