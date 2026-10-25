@@ -136,3 +136,26 @@ being accepted as a smaller number.
 | Returns | `True` when the recorded stock is at least the requested quantity, otherwise `False` |
 | Raises | `ValueError("Requested quantity must be greater than zero")` when the requested quantity is zero; the validation errors from `valid_stock` for negative, non-integer or boolean values; `ValueError("Product <id> was not found")` |
 | Side effects | Reads `products.json` but does not modify it |
+
+## 4.3 inventory_menu.py
+
+At import time the module tries to import `inventory`. If that import fails it sets the internal
+reference to `None`, prints a warning and continues in Mock Mode: the menu still displays and echoes
+each choice, but no data is read or written.
+
+### display_inventory_menu() -> None
+
+| Item | Detail |
+|---|---|
+| Input | None — the function reads the menu choice and the field values from the console |
+| Returns | None — it returns when option 6 is chosen |
+| Raises | Nothing itself. A `ValueError` from the inventory functions is caught and printed with a prefix (`Input Rejected`, `Update Aborted`, `Adjustment Refused`, `Query Denied`); option 1 catches any exception and prints a system error |
+| Side effects | Reads console input, prints the menu and results, and calls the inventory functions, which may write `products.json` |
+
+The menu offers six choices: view inventory, add product, update product information, change stock,
+check availability and return to the main menu. Option 6 leaves the loop; because there is no
+`main.py` yet, the program ends at that point.
+
+Numeric fields are converted with `int()` before they reach the inventory functions, so text that is
+not a number is reported with Python's own message (`invalid literal for int() with base 10: ...`)
+rather than with a message from `valid_stock`.
