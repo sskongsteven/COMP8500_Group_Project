@@ -9,7 +9,7 @@ Course: COMP 8500SEF Software Engineering, HKMU · Group 65
 
 | Area | Status |
 |---|---|
-| Product and inventory management | In progress (Increment 1) |
+| Product and inventory management | Completed (Increment 1) |
 | Customer ordering (sample order file) | Not started |
 | Order fulfilment | Not started |
 | Delivery management | Not started |
