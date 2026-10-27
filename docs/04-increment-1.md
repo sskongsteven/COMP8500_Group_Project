@@ -46,20 +46,20 @@ The tests are implemented in Products/test_increment1.py. Each case records its 
 
 | # | Test | Expected result | Result |
 |---|---|---|---|
-| 1 | Add a valid product | Product receives a unique ID and appears in inventory | TBC |
-| 2 | Add a product with an empty name | Rejected, file unchanged | TBC |
-| 3 | Negative price | Rejected, file unchanged | TBC |
-| 4 | Negative starting stock | Rejected, file unchanged | TBC |
-| 5 | Update product information | Changes reflected in inventory | TBC |
-| 6 | Add stock | Quantity in inventory increases | TBC |
-| 7 | Remove more stock than available | Rejected, quantity unchanged | TBC |
-| 8 | Select a non-existing product | Show error, no change | TBC |
-| 9 | Check product availability | True when sufficient stock exists | TBC |
-| 10 | Close and reopen program | Products are correctly saved | TBC |
-| 11 | View inventory | Inventory records are displayed | TBC |
-| 12 | Performance test (inventory with 200 products) | 200 products loaded within 2 seconds | TBC |
+| 1 | Add a valid product | Product receives a unique ID and appears in inventory | PASS |
+| 2 | Add a product with an empty name | Rejected, file unchanged | PASS |
+| 3 | Negative price | Rejected, file unchanged | PASS |
+| 4 | Negative starting stock | Rejected, file unchanged | PASS |
+| 5 | Update product information | Changes reflected in inventory | PASS |
+| 6 | Add stock | Quantity in inventory increases | PASS |
+| 7 | Remove more stock than available | Rejected, quantity unchanged | PASS |
+| 8 | Select a non-existing product | Show error, no change | PASS |
+| 9 | Check product availability | True when sufficient stock exists | PASS |
+| 10 | Close and reopen program | Products are correctly saved | PASS |
+| 11 | View inventory | Inventory records are displayed | PASS |
+| 12 | Performance test (inventory with 200 products) | 200 products loaded within 2 seconds | PASS |
 
-Overall: __ of 12 passed.
+Overall: 12 of 12 passed. The performance case loaded 200 products in 0.0002 seconds, well inside the two-second target.
 
 ## 3 Limitations
 
