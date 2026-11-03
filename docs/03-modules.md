@@ -159,3 +159,77 @@ check availability and return to the main menu. Option 6 leaves the loop; becaus
 Numeric fields are converted with `int()` before they reach the inventory functions, so text that is
 not a number is reported with Python's own message (`invalid literal for int() with base 10: ...`)
 rather than with a message from `valid_stock`.
+
+## 4.5 order.py
+
+The module constant `ORDERS_FILE` points to `orders.json` by a relative path. Six status constants
+define the only accepted status values: `STATUS_PENDING`, `STATUS_PACKED`,
+`STATUS_READY_FOR_DELIVERY`, `STATUS_OUT_FOR_DELIVERY`, `STATUS_DELIVERED` and `STATUS_CANCELLED`.
+Their values are the display strings used in the data file ("Pending", "Packed", "Ready for
+Delivery", "Out for Delivery", "Delivered", "Cancelled").
+
+### load_orders(path=ORDERS_FILE) -> list
+
+| Item | Detail |
+|---|---|
+| Input | path: the JSON file to read; defaults to `orders.json` |
+| Returns | The saved list of order records; an empty list when the file is missing |
+| Raises | Nothing — a file that cannot be parsed is also returned as an empty list |
+| Side effects | Reads `orders.json` but does not modify it |
+
+### save_orders(orders, path=ORDERS_FILE) -> None
+
+| Item | Detail |
+|---|---|
+| Input | orders: the list of order records to save; path: the JSON file to write |
+| Returns | None |
+| Raises | `OSError` or `TypeError` from the write, not wrapped |
+| Side effects | Writes `orders.json` in place with `indent=2` |
+
+### view_order_details(order_id, path=ORDERS_FILE) -> dict
+
+| Item | Detail |
+|---|---|
+| Input | order_id: the identifier to look for, e.g. `O001` |
+| Returns | The matching order record, including items, total and status_history |
+| Raises | `ValueError("Order ID <id> was not found in the records.")` if no record has that identifier |
+| Side effects | Reads `orders.json` but does not modify it |
+
+### update_order_status(order_id, new_status, path=ORDERS_FILE) -> dict
+
+| Item | Detail |
+|---|---|
+| Input | order_id; new_status: one of the six status constants |
+| Returns | The updated order record. If the order already has that status, it is returned unchanged |
+| Raises | `ValueError("Invalid status identifier token: <status>")` for a value outside the six; a `Rule Violation` error when the transition is not allowed from the current status; `ValueError("Order ID <id> was not found.")` for an unknown identifier |
+| Side effects | Writes `orders.json` and appends `{"status": <new>, "at": <ISO timestamp>}` to status_history. Nothing is written when the request is rejected, or when the status is unchanged |
+
+The five transition rules are enforced here rather than in the menu, so any future caller inherits
+them. Requesting the current status is treated as a no-op and adds no history entry, which keeps
+the history free of duplicate rows.
+
+## 4.6 order_menu.py
+
+At import time the module tries to import `order`. If that import fails it sets the internal
+reference to `None`, prints a warning and continues in Mock Mode, where choices are echoed but no
+order is read or written.
+
+### display_order_menu() -> None
+
+| Item | Detail |
+|---|---|
+| Input | None — the function reads the menu choice, the order ID and (for option 3) a status choice from the console |
+| Returns | None — it returns when option 5 is chosen |
+| Raises | Nothing itself. A `ValueError` from `order.py` is caught and printed with a prefix: `Query Denied`, `Transition Rejected`, `Update Aborted` or `Cancellation Refused` |
+| Side effects | Prints the menu and results, and calls the order functions, which may write `orders.json` |
+
+| Option | Action | Calls |
+|---|---|---|
+| 1 | View order details | `view_order_details(order_id)`; prints header, items, total and status history |
+| 2 | Mark order as packed | `update_order_status(order_id, STATUS_PACKED)` |
+| 3 | Update order status | asks for 1 Ready for Delivery, 2 Out for Delivery or 3 Delivered, then `update_order_status` |
+| 4 | Cancel a pending order | `update_order_status(order_id, STATUS_CANCELLED)` |
+| 5 | Return to the main menu | leaves the loop |
+
+Packed and Cancelled have no entry of their own in option 3; they are reached through options 2
+and 4, which keeps the two rule-bound transitions visible in the menu.
