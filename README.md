@@ -1,7 +1,6 @@
 # COMP8500SEF Group 65 Project — E-Shop Logistics Management System
 
-A console-based inventory and order fulfilment system for small e-shops, written in Python with
-JSON file storage instead of a database server.
+A console-based inventory, order fulfilment, delivery and order tracking system for small e-shops, written in Python with JSON file storage instead of a database server.
 
 Course: COMP 8500SEF Software Engineering, HKMU · Group 65
 
@@ -10,12 +9,12 @@ Course: COMP 8500SEF Software Engineering, HKMU · Group 65
 | Area | Status |
 |---|---|
 | Product and inventory management | Completed (Increment 1) |
-| Customer ordering (sample order file) | Not started |
-| Order fulfilment | Not started |
-| Delivery management | Not started |
-| Order tracking | Not started |
+| Customer ordering (sample order file) | In progress (Increment 2) |
+| Order fulfilment | In progress (Increment 2) |
+| Delivery management | Not started (Increment 3) |
+| Order tracking | Not started (Increment 3) |
 
-The project is built in three increments, and each one is reviewed before the next starts. So far the repository contains only the product and inventory part of Increment 1.
+The project is built in three increments, and each one is reviewed before the next starts. The repository currently contains the completed product and inventory modules of Increment 1, and the order modules being developed for Increment 2.
 
 ## Repository structure
 
@@ -26,12 +25,17 @@ The project is built in three increments, and each one is reviewed before the ne
     │   ├── storage.py          JSON read and write (atomic save)
     │   ├── inventory.py        Product and stock rules
     │   ├── inventory_menu.py   Console menu for inventory operations
+    │   ├── order.py            Order records and status transition rules
+    │   ├── order_menu.py       Console menu for order operations
     │   ├── main_menu.py        Main entry point; routes to each module
+    │   ├── products.json       Sample product data
+    │   ├── orders.json         Sample order data
     │   ├── test_increment1.py  Test script for Increment 1
-    │   └── products.json       Sample product data
+    │   └── test_increment2.py  Test script for Increment 2
     └── docs/
         ├── 03-modules.md       Reference for every public function
-        └── 04-increment-1.md   Workflow, test summary and limitations
+        ├── 04-increment-1.md   Inventory workflow, test summary and limitations
+        └── 05-increment-2.md   Order workflow, test summary and limitations
 
 ## Requirements
 
@@ -40,30 +44,33 @@ The project is built in three increments, and each one is reviewed before the ne
 
 ## How to run
 
-The data file is opened by its relative path (products.json), so the program must be started from the Products directory:
+The data files are opened by their relative paths (products.json and orders.json), so the program must be started from the Products directory:
 
     cd Products
     python main_menu.py
 
-When the inventory area is opened, the program tries to import inventory.py. If that import fails it prints a warning and shows the menu in Mock Mode: the menu responds, but nothing is loaded or saved.
+Product and Inventory Management is complete. Order and Fulfilment Management provides its own menu with view, pack, status update and cancel operations. Delivery and Tracking Management is a placeholder until Increment 3.
 
-To run the Increment 1 tests:
+At start-up the program imports inventory.py through inventory_menu.py. If that import fails, a warning is printed and the inventory menu runs in Mock Mode: the menu responds, but nothing is loaded or saved.
+
+To run the tests:
 
     cd Products
     python test_increment1.py
+    python test_increment2.py
 
-The script runs twelve test cases against a temporary file, test_products.json, and prints a PASS or FAIL result for each, followed by a summary. The temporary file is deleted at the end, so the real products.json is never modified.
+Each script runs its test cases against a temporary file (test_products.json and test_orders.json respectively) and prints a PASS or FAIL result for every case, followed by a summary. The temporary files are deleted at the end, so the real data files are never modified.
 
-## Data file
+## Data files
 
 Products/products.json holds a JSON list of product records:
 
     [
       {
         "product_id": "P001",
-        "product_name": "Wireless Keyboard",
-        "price": "120.00",
-        "stock_quantity": 10
+        "product_name": "Notebook",
+        "price": "25.00",
+        "stock_quantity": 11
       }
     ]
 
@@ -74,14 +81,64 @@ Products/products.json holds a JSON list of product records:
 | price | string | Exactly two decimal places; stored as text to avoid floating-point rounding |
 | stock_quantity | integer | Whole number, never negative |
 
+Products/orders.json holds a JSON list of order records:
+
+    [
+      {
+        "order_id": "O001",
+        "customer_name": "Sample Customer A",
+        "delivery_address": "Sample address, Central, Hong Kong",
+        "created_at": "2026-10-27T10:30:00",
+        "status": "Pending",
+        "items": [
+          {
+            "product_id": "P001",
+            "product_name": "Notebook",
+            "price": "25.00",
+            "quantity": 2,
+            "line_total": "50.00"
+          },
+          {
+            "product_id": "P002",
+            "product_name": "Ballpoint Pen",
+            "price": "6.00",
+            "quantity": 3,
+            "line_total": "18.00"
+          }
+        ],
+        "total": "68.00",
+        "delivery": null,
+        "status_history": [
+          { "status": "Pending", "at": "2026-10-27T10:30:00" }
+        ]
+      }
+    ]
+
+| Field | Type | Rule |
+|---|---|---|
+| order_id | string | Generated by the program; never reused |
+| customer_name | string | Any string |
+| delivery_address | string | Any string |
+| created_at | string | Date and time the order was created |
+| status | string | Pending, Packed, Ready for Delivery, Out for Delivery, Delivered or Cancelled |
+| items | list | Each item has product_id, product_name, price, quantity and line_total |
+| total | string | Total price, two decimal places; equal to the sum of the line totals |
+| delivery | object or null | Null until a delivery is assigned; delivery details are added in Increment 3 |
+| status_history | list | One entry per status change, each with status and the time it happened |
+
+Status transitions follow a fixed order: Pending to Packed to Ready for Delivery to Out for Delivery to Delivered. A Pending order may also be cancelled; once an order is Packed it can no longer be cancelled. Every change is appended to status_history.
+
+Orders are not created inside the application in this release; the menus work from the sample order file. Manual order entry is not implemented yet.
+
 ## Documentation
 
 | Document | Contents |
 |---|---|
 | docs/03-modules.md | Public function reference: inputs, outputs, raised errors and side effects |
 | docs/04-increment-1.md | Inventory workflow, test summary and limitations |
+| docs/05-increment-2.md | Order workflow, test summary and limitations |
 
 ## Open items
 
-1. main_menu.py is a preliminary version: options 2 (Order & Fulfilment) and 3 (Delivery & Tracking) are placeholders until Increment 2 and Increment 3 are built.
-2. Ordering, fulfilment, delivery and tracking are not implemented yet.
+1. Delivery management and order tracking are not started; option 3 in main_menu.py is a placeholder until Increment 3 is built.
+2. Manual order entry is not implemented; the order menus work from the sample order file.
