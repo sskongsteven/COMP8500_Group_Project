@@ -33,36 +33,35 @@ Two behaviours are worth stating because they are easy to miss. First, requestin
 
 ## 2 Test summary
 
+
 The tests are implemented in Products/test_increment2.py. Each case records its expected result, its actual result and a PASS or FAIL status, and the script prints a summary with the pass count and pass rate. Tests run against a temporary file, test_orders.json, which the script creates and deletes, so the real orders.json is never modified.
 
 | # | Test | Expected result | Result |
 |---|---|---|---|
-| 1 | View order details | Correct order information displayed | TBC |
-| 2 | Mark order as packed | Status changes to Packed | TBC |
-| 3 | Update to Ready for Delivery | Status changes successfully | TBC |
-| 4 | Update to Out for Delivery | Status changes successfully | TBC |
-| 5 | Update to Delivered | Status changes successfully | TBC |
-| 6 | Cancel a Pending order | Status changes to Cancelled | TBC |
-| 7 | Cancel a Packed order | Rejected | TBC |
-| 8 | Non-existing order | Error displayed | TBC |
-| 9 | Reopen program | Status persists | TBC |
-| 10 | Pending -> Ready for Delivery | Rejected | TBC |
-| 11 | Pending -> Out for Delivery | Rejected | TBC |
-| 12 | Pending -> Delivered | Rejected | TBC |
-| 13 | Packed -> Out for Delivery | Rejected | TBC |
-| 14 | Packed -> Delivered | Rejected | TBC |
-| 15 | Ready for Delivery -> Delivered | Rejected | TBC |
-| 16 | Cancel a Ready for Delivery order | Rejected | TBC |
-| 17 | Cancel an Out for Delivery order | Rejected | TBC |
-| 18 | Cancel a Delivered order | Rejected | TBC |
-| 19 | Status history update verification | New status appended to status_history | TBC |
-| 20 | Invalid status value | Rejected | TBC |
-| 21 | Empty order file | Zero orders loaded successfully | TBC |
-| 22 | Performance test (100 orders) | 100 orders loaded within 2 seconds | TBC |
+| 1 | View order details | Correct order information displayed | PASS |
+| 2 | Mark order as packed | Status changes to Packed | PASS |
+| 3 | Update to Ready for Delivery | Status changes successfully | PASS |
+| 4 | Update to Out for Delivery | Status changes successfully | PASS |
+| 5 | Update to Delivered | Status changes successfully | PASS |
+| 6 | Cancel a Pending order | Status changes to Cancelled | PASS |
+| 7 | Cancel a Packed order | Rejected | PASS |
+| 8 | Non-existing order | Error displayed | PASS |
+| 9 | Reopen program | Status persists | PASS |
+| 10 | Pending -> Ready for Delivery | Rejected | PASS |
+| 11 | Pending -> Out for Delivery | Rejected | PASS |
+| 12 | Pending -> Delivered | Rejected | PASS |
+| 13 | Packed -> Out for Delivery | Rejected | PASS |
+| 14 | Packed -> Delivered | Rejected | PASS |
+| 15 | Ready for Delivery -> Delivered | Rejected | PASS |
+| 16 | Cancel a Ready for Delivery order | Rejected | PASS |
+| 17 | Cancel an Out for Delivery order | Rejected | PASS |
+| 18 | Cancel a Delivered order | Rejected | PASS |
+| 19 | Status history update verification | New status appended to status_history | PASS |
+| 20 | Invalid status value | Rejected | PASS |
+| 21 | Empty order file | Zero orders loaded successfully | PASS |
+| 22 | Performance test (100 orders) | 100 orders loaded within 2 seconds | PASS |
 
-Overall: __ of 22 passed.
-
-The Result column is filled in from the actual test run; TBC marks cases that have not been recorded yet.
+Overall: 22 of 22 passed, a pass rate of 100%.
 
 ## 3 Limitations
 
