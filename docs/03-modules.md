@@ -160,6 +160,40 @@ Numeric fields are converted with `int()` before they reach the inventory functi
 not a number is reported with Python's own message (`invalid literal for int() with base 10: ...`)
 rather than with a message from `valid_stock`.
 
+## 4.4 main_menu.py
+
+The module imports both menus at start-up: `inventory_menu` from Increment 1 and `order_menu` from
+Increment 2. The delivery menu is a local placeholder until Increment 3.
+
+### display_main_menu() -> None
+
+| Item | Detail |
+|---|---|
+| Input | None — reads a single menu choice from the console |
+| Returns | None — it returns when option 0 is chosen |
+| Raises | Nothing itself; an unrecognised choice prints a message and the menu is shown again |
+| Side effects | Prints the menu and opens the selected module menu, which may read or write the data files |
+
+| Option | Action | Calls |
+|---|---|---|
+| 1 | Product & Inventory Management | `display_inventory_menu()` |
+| 2 | Order & Fulfilment Management | `display_order_menu()` |
+| 3 | Delivery & Tracking Management | `display_delivery_menu()` (placeholder) |
+| 0 | Exit | prints a closing message and leaves the loop |
+| other | Invalid | prints "Invalid option. Please select a number from the menu." |
+
+### display_delivery_menu() -> None
+
+| Item | Detail |
+|---|---|
+| Input | None |
+| Returns | None |
+| Raises | Nothing |
+| Side effects | Prints "Delivery & Tracking Module is under development." |
+
+This function is temporary. It keeps the third menu option usable while the Delivery & Tracking
+module is being built, and will be replaced by the real menu in Increment 3.
+
 ## 4.5 order.py
 
 The module constant `ORDERS_FILE` points to `orders.json` by a relative path. Six status constants
