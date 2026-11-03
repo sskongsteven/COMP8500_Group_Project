@@ -12,7 +12,9 @@ STATUS_DELIVERED = "Delivered"
 STATUS_CANCELLED = "Cancelled"
 
 def load_orders(path=ORDERS_FILE):
-    """Reads and parses the text-based local orders.json file."""
+    """
+    Reads and parses the text-based local orders.json file.
+    """
     try:
         with open(path, 'r', encoding='utf-8') as f:
             return json.load(f)
@@ -20,9 +22,17 @@ def load_orders(path=ORDERS_FILE):
         return []
 
 def save_orders(orders, path=ORDERS_FILE):
-    """Executes atomic serialized write-back to the local database file."""
+    """
+    Executes atomic serialized write-back to the local database file.
+    """
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(orders, f, indent=2)
+
+def list_orders(path=ORDERS_FILE):
+    """
+    FUNCTION: Returns the full list of saved orders.
+    """
+    return load_orders(path)
 
 def view_order_details(order_id, path=ORDERS_FILE):
     """
