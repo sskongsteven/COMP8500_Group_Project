@@ -3,12 +3,39 @@ try:
     import order as ord_core
 except ImportError:
     ord_core = None
-    print("Warning: order.py module was not detected in the current path. Running in Mock Mode.")
+    print("Warning: order.py module was not detected. Running in Mock Mode.")
+
+def select_order_from_list():
+    """
+    Forces users to input list indexes。
+    """
+    if not ord_core:
+        print("[Mock] Order list placeholder.")
+        return None
+        
+    orders = ord_core.list_orders()
+    if not orders:
+        print("Notification: There are currently no orders stored in the system ledger.")
+        return None
+        
+    print("\n--- Available Orders List ---")
+    for idx, order in enumerate(orders, 1):
+        print(f"[{idx}] Order ID: {order['order_id']} | Customer: {order['customer_name']} | Status: {order['status']} | Total: ${order['total']}")
+    print("------------------------------")
+    
+    try:
+        selection = int(input(f"Select an order row by entering its number (1-{len(orders)}): ").strip())
+        if 1 <= selection <= len(orders):
+            return orders[selection - 1]["order_id"]
+        else:
+            print("Selection Rejected: Number is out of active list boundaries.")
+            return None
+    except ValueError:
+        print("Selection Rejected: Input must be a valid numerical integer.")
+        return None
 
 def display_order_menu():
-    """
-    Handles numerical inputs and integrates directly with order lifecycle functions.
-    """
+    """Renders the text-based order management control sub-menu."""
     while True:
         print("\n==================================")
         print("    E-Shop Order & Fulfillment    ")
@@ -24,11 +51,10 @@ def display_order_menu():
         
         if choice == '1':
             print("\n--- [Action] View Order Details ---")
-            order_id = input("Enter unique Order ID (e.g., O001): ").strip()
-            if ord_core:
+            selected_id = select_order_from_list()
+            if selected_id and ord_core:
                 try:
-                    # Invoke order.py logic to fetch the nested dictionary structure
-                    order_data = ord_core.view_order_details(order_id)
+                    order_data = ord_core.view_order_details(selected_id)
                     print("\n[Order Data Schema Details]")
                     print(f"Order ID        : {order_data['order_id']}")
                     print(f"Customer Name   : {order_data['customer_name']}")
@@ -44,69 +70,58 @@ def display_order_menu():
                         print(f"  - [{history['at']}] Status changed to: {history['status']}")
                 except ValueError as e:
                     print(f"Query Denied: {e}")
-            else:
-                print(f"[Mock Mode] Rendering mock properties for simulated order ID: {order_id}")
 
         elif choice == '2':
             print("\n--- [Action] Mark Order as Packed ---")
-            order_id = input("Enter Order ID to mark as Packed: ").strip()
-            if ord_core:
+            selected_id = select_order_from_list()
+            if selected_id and ord_core:
                 try:
-                    # Trigger state mutation via order.py
-                    updated_order = ord_core.update_order_status(order_id, ord_core.STATUS_PACKED)
+                    updated_order = ord_core.update_order_status(selected_id, ord_core.STATUS_PACKED)
                     print(f"Success: Order {updated_order['order_id']} status updated to: {updated_order['status']}")
                 except ValueError as e:
                     print(f"Transition Rejected: {e}")
-            else:
-                print(f"[Mock Mode] Order {order_id} marked as Packed dynamically.")
 
         elif choice == '3':
             print("\n--- [Action] Update Order Status ---")
-            order_id = input("Enter Target Order ID: ").strip()
-            print("Available Status Choices:")
-            print("  1. Ready for Delivery")
-            print("  2. Out for Delivery")
-            print("  3. Delivered")
-            status_choice = input("Select new status option (1-3): ").strip()
-            
-            new_status = None
-            if status_choice == '1':
-                new_status = ord_core.STATUS_READY_FOR_DELIVERY if ord_core else "Ready for Delivery"
-            elif status_choice == '2':
-                new_status = ord_core.STATUS_OUT_FOR_DELIVERY if ord_core else "Out for Delivery"
-            elif status_choice == '3':
-                new_status = ord_core.STATUS_DELIVERED if ord_core else "Delivered"
-            else:
-                print("Invalid operational choice token. Mutation aborted.")
-                continue
+            selected_id = select_order_from_list()
+            if selected_id:
+                print("Available Status Choices:")
+                print("  1. Ready for Delivery")
+                print("  2. Out for Delivery")
+                print("  3. Delivered")
+                status_choice = input("Select new status option (1-3): ").strip()
                 
-            if ord_core:
-                try:
-                    # Route transition inputs directly into order.py validator matrix
-                    updated_order = ord_core.update_order_status(order_id, new_status)
-                    print(f"Success: Order {updated_order['order_id']} successfully updated to: {updated_order['status']}")
-                except ValueError as e:
-                    print(f"Update Aborted: {e}")
-            else:
-                print(f"[Mock Mode] Order {order_id} updated to status: {new_status}")
+                new_status = None
+                if status_choice == '1':
+                    new_status = ord_core.STATUS_READY_FOR_DELIVERY if ord_core else "Ready for Delivery"
+                elif status_choice == '2':
+                    new_status = ord_core.STATUS_OUT_FOR_DELIVERY if ord_core else "Out for Delivery"
+                elif status_choice == '3':
+                    new_status = ord_core.STATUS_DELIVERED if ord_core else "Delivered"
+                else:
+                    print("Invalid operational choice token. Mutation aborted.")
+                    continue
+                    
+                if ord_core:
+                    try:
+                        updated_order = ord_core.update_order_status(selected_id, new_status)
+                        print(f"Success: Order {updated_order['order_id']} successfully updated to: {updated_order['status']}")
+                    except ValueError as e:
+                        print(f"Update Aborted: {e}")
 
         elif choice == '4':
             print("\n--- [Action] Cancel a Pending Order ---")
-            order_id = input("Enter Order ID to execute Cancellation: ").strip()
-            if ord_core:
+            selected_id = select_order_from_list()
+            if selected_id and ord_core:
                 try:
-                    # Enforce Rule 6 & 7: Only Pending orders can transition to Cancelled
-                    updated_order = ord_core.update_order_status(order_id, ord_core.STATUS_CANCELLED)
+                    updated_order = ord_core.update_order_status(selected_id, ord_core.STATUS_CANCELLED)
                     print(f"Success: Order {updated_order['order_id']} cancelled. Current state: {updated_order['status']}")
                 except ValueError as e:
                     print(f"Cancellation Refused: {e}")
-            else:
-                print(f"[Mock Mode] Pending order {order_id} cancelled successfully.")
 
         elif choice == '5':
             print("\nExiting sub-menu hierarchy. Returning to main console loop.")
             break
-            
         else:
             print("Selection Rejected: Invalid command token. Please select an option bounded between 1 and 5.")
 
