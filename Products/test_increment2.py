@@ -13,6 +13,7 @@ import time
 # Import order management functions and status constants.
 from order import (
     load_orders,
+    list_orders,
     view_order_details,
     update_order_status,
     STATUS_PACKED,
@@ -80,7 +81,39 @@ print("Increment 2 - Testing & Validation")
 print("=" * 60)
 
 # ---------------------------------------------------------
-# Test 1 - View order details
+# Test 1A - List all orders
+# ---------------------------------------------------------
+
+try:
+    # Retrieve all orders.
+    orders = list_orders(
+        path=TEST_FILE
+    )
+
+    # Verify the expected number of orders.
+    passed = (
+        len(orders) == 1
+    )
+
+    # Record PASS/FAIL result.
+    record(
+        "List all orders",
+        "All orders returned successfully",
+        f"{len(orders)} order(s) returned",
+        passed
+    )
+
+# Catch any unexpected error.
+except Exception as e:
+    record(
+        "List all orders",
+        "All orders returned successfully",
+        str(e),
+        False
+    )
+
+# ---------------------------------------------------------
+# Test 1B - View order details
 # ---------------------------------------------------------
 
 try:
