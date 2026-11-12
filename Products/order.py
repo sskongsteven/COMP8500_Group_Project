@@ -1,5 +1,7 @@
 import json
 from datetime import datetime
+from inventory import find_product, valid_stock
+from storage import PRODUCTS_FILE, load_products, save_products
 
 ORDERS_FILE = "orders.json"
 
@@ -44,7 +46,47 @@ def view_order_details(order_id, path=ORDERS_FILE):
             return order
     raise ValueError(f"Order ID {order_id} was not found in the records.")
 
-def update_order_status(order_id, new_status, path=ORDERS_FILE):
+def pack_order(order_id, path=ORDERS_FILE, products_path=PRODUCTS_FILE):
+    """Check every item, then deduct stock once and mark a Pending order Packed."""
+    orders = load_orders(path)
+    order = next((record for record in orders if record["order_id"] == order_id), None)
+    if order is None:
+        raise ValueError(f"Order ID {order_id} was not found.")
+    if order["status"] != STATUS_PENDING:
+        raise ValueError(f"Only Pending orders can be packed. Current: {order['status']}")
+    if not order["items"]:
+        raise ValueError("Cannot pack an order with no items.")
+
+    # Combine repeated product lines so their total cannot exceed available stock.
+    required = {}
+    for item in order["items"]:
+        quantity = valid_stock(item["quantity"])
+        if quantity == 0:
+            raise ValueError("Order item quantity must be greater than zero.")
+        product_id = item["product_id"]
+        required[product_id] = required.get(product_id, 0) + quantity
+
+    products = load_products(products_path)
+    deductions = []
+    for product_id, quantity in required.items():
+        product = find_product(products, product_id)
+        available = valid_stock(product["stock_quantity"])
+        if available < quantity:
+            raise ValueError(
+                f"Insufficient stock for {product_id}: required {quantity}, available {available}."
+            )
+        deductions.append((product, quantity))
+
+    # All checks passed. No file is changed when an item fails validation.
+    for product, quantity in deductions:
+        product["stock_quantity"] -= quantity
+    order["status"] = STATUS_PACKED
+    order["status_history"].append({"status": STATUS_PACKED, "at": datetime.now().isoformat()})
+    save_products(products, products_path)
+    save_orders(orders, path)
+    return order
+
+def update_order_status(order_id, new_status, path=ORDERS_FILE, products_path=PRODUCTS_FILE):
     """
     Every valid mutation automatically appends a timestamped log to status_history.
     """
@@ -52,18 +94,22 @@ def update_order_status(order_id, new_status, path=ORDERS_FILE):
     if new_status not in valid_statuses:
         raise ValueError(f"Invalid status identifier token: {new_status}")
 
+    # Existing callers must use the same stock checks as the packing menu.
+    if new_status == STATUS_PACKED:
+        return pack_order(order_id, path, products_path)
+
     orders = load_orders(path)
     for order in orders:
         if order["order_id"] == order_id:
             current_status = order["status"]
-            
+
             # If target status matches current status, return without mutating logs
             if current_status == new_status:
                 return order
-                
-            # Only a Pending order can become Packed.
-            if new_status == STATUS_PACKED and current_status != STATUS_PENDING:
-                raise ValueError(f"Rule Violation: Only Pending orders can transition to Packed. Current: {current_status}")
+
+            # Prevent resetting a packed order and deducting its stock a second time.
+            if new_status == STATUS_PENDING:
+                raise ValueError("Rule Violation: An order cannot return to Pending.")
                 
             # Only a Packed order can become Ready for Delivery.
             if new_status == STATUS_READY_FOR_DELIVERY and current_status != STATUS_PACKED:

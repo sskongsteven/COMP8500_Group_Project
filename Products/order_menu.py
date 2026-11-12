@@ -96,7 +96,7 @@ def display_order_menu():
                 continue
             if selected_id and ord_core:
                 try:
-                    updated_order = ord_core.update_order_status(selected_id, ord_core.STATUS_PACKED)
+                    updated_order = ord_core.pack_order(selected_id)
                     print(f"Success: Order {updated_order['order_id']} status updated to: {updated_order['status']}")
                 except ValueError as e:
                     print(f"Transition Rejected: {e}")

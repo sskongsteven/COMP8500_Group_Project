@@ -22,7 +22,12 @@
       }
     ],
     "total": "68.00",
-    "delivery": null,
+    "delivery": {
+      "delivery_method": "Courier",
+      "driver_id": null,
+      "driver_name": null,
+      "delivery_status": "Unassigned"
+    },
     "status_history": [
       {
         "status": "Pending",
@@ -53,7 +58,12 @@
       }
     ],
     "total": "69.00",
-    "delivery": null,
+    "delivery": {
+      "delivery_method": "Courier",
+      "driver_id": null,
+      "driver_name": null,
+      "delivery_status": "Unassigned"
+    },
     "status_history": [
       {
         "status": "Pending",
@@ -91,7 +101,12 @@
       }
     ],
     "total": "68.00",
-    "delivery": null,
+    "delivery": {
+      "delivery_method": "Courier",
+      "driver_id": null,
+      "driver_name": null,
+      "delivery_status": "Unassigned"
+    },
     "status_history": [
       {
         "status": "Pending",
