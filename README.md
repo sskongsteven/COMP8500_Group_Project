@@ -6,8 +6,8 @@ Course: COMP 8500SEF Software Engineering, HKMU · Group 65
 
 ## Scope
 
-| Area | Status |
-|---|---|
+| Area |
+|---|
 | Product and inventory management (Increment 1) |
 | Customer ordering (sample order file) (Increment 2) |
 | Order fulfilment (Increment 2) |
