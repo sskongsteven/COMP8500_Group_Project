@@ -1,6 +1,6 @@
 # Increment 2 — Documentation
 
-Group 65 · COMP 8500SEF Software Engineering · 3 November 2026
+Group 65 · COMP 8500SEF Software Engineering · 13 November 2026
 
 ## 1 Order workflow
 
@@ -38,7 +38,8 @@ The tests are implemented in Products/test_increment2.py. Each case records its 
 
 | # | Test | Expected result | Result |
 |---|---|---|---|
-| 1 | View order details | Correct order information displayed | PASS |
+| 1A | Load all order | Correct order information displayed | PASS |
+| 1B | View order details | Correct order information displayed | PASS |
 | 2 | Mark order as packed | Status changes to Packed | PASS |
 | 3 | Update to Ready for Delivery | Status changes successfully | PASS |
 | 4 | Update to Out for Delivery | Status changes successfully | PASS |
@@ -61,7 +62,7 @@ The tests are implemented in Products/test_increment2.py. Each case records its 
 | 21 | Empty order file | Zero orders loaded successfully | PASS |
 | 22 | Performance test (100 orders) | 100 orders loaded within 2 seconds | PASS |
 
-Overall: 22 of 22 passed, a pass rate of 100%.
+Overall: 23 of 23 passed, a pass rate of 100%.
 
 ## 3 Limitations
 
