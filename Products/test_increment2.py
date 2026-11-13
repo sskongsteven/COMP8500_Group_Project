@@ -107,7 +107,7 @@ print("Increment 2 - Testing & Validation")
 print("=" * 60)
 
 # ---------------------------------------------------------
-# Test 1A - List all orders
+# Test 1 - List all orders
 # ---------------------------------------------------------
 
 try:
@@ -139,7 +139,7 @@ except Exception as e:
     )
 
 # ---------------------------------------------------------
-# Test 1B - View order details
+# Test 2 - View order details
 # ---------------------------------------------------------
 
 try:
@@ -175,7 +175,7 @@ except Exception as e:
     )
 
 # ---------------------------------------------------------
-# Test 2 - Mark order as packed
+# Test 3 - Mark order as packed
 # ---------------------------------------------------------
 
 try:
@@ -207,7 +207,7 @@ except Exception as e:
     )
 
 # ---------------------------------------------------------
-# Test 3 - Update to Ready for Delivery
+# Test 4 - Update to Ready for Delivery
 # ---------------------------------------------------------
 
 try:
@@ -239,7 +239,7 @@ except Exception as e:
     )
 
 # ---------------------------------------------------------
-# Test 4 - Update to Out for Delivery
+# Test 5 - Update to Out for Delivery
 # ---------------------------------------------------------
 
 try:
@@ -271,7 +271,7 @@ except Exception as e:
     )
 
 # ---------------------------------------------------------
-# Test 5 - Update to Delivered
+# Test 6 - Update to Delivered
 # ---------------------------------------------------------
 
 try:
@@ -303,7 +303,7 @@ except Exception as e:
     )
 
 # ---------------------------------------------------------
-# Test 6 - Cancel a Pending order
+# Test 7 - Cancel a Pending order
 # ---------------------------------------------------------
 
 try:
@@ -342,7 +342,7 @@ except Exception as e:
     )
 
 # ---------------------------------------------------------
-# Test 7 - Cancel a Packed order
+# Test 8 - Cancel a Packed order
 # ---------------------------------------------------------
 
 try:
@@ -389,7 +389,7 @@ except ValueError:
     )
 
 # ---------------------------------------------------------
-# Test 8 - Non-existing order
+# Test 9 - Non-existing order
 # ---------------------------------------------------------
 
 try:
@@ -419,7 +419,7 @@ except ValueError:
     )
 
 # ---------------------------------------------------------
-# Test 9 - Reopen program
+# Test 10 - Reopen program
 # ---------------------------------------------------------
 
 try:
@@ -470,7 +470,7 @@ except Exception as e:
     )
 
 # ---------------------------------------------------------
-# Test 10 - Pending -> Ready for Delivery
+# Test 11 - Pending -> Ready for Delivery
 # ---------------------------------------------------------
 
 try:
@@ -509,7 +509,7 @@ except ValueError:
     )
 
 # ---------------------------------------------------------
-# Test 11 - Pending -> Out for Delivery
+# Test 12 - Pending -> Out for Delivery
 # ---------------------------------------------------------
 
 try:
@@ -548,7 +548,7 @@ except ValueError:
     )
 
 # ---------------------------------------------------------
-# Test 12 - Pending -> Delivered
+# Test 13 - Pending -> Delivered
 # ---------------------------------------------------------
 
 try:
@@ -587,7 +587,7 @@ except ValueError:
     )
 
 # ---------------------------------------------------------
-# Test 13 - Packed -> Out for Delivery
+# Test 14 - Packed -> Out for Delivery
 # ---------------------------------------------------------
 
 try:
@@ -634,7 +634,7 @@ except ValueError:
     )
 
 # ---------------------------------------------------------
-# Test 14 - Packed -> Delivered
+# Test 15 - Packed -> Delivered
 # ---------------------------------------------------------
 
 try:
@@ -680,7 +680,7 @@ except ValueError:
     )
 
 # ---------------------------------------------------------
-# Test 15 - Ready for Delivery -> Delivered
+# Test 16 - Ready for Delivery -> Delivered
 # ---------------------------------------------------------
 
 try:
@@ -735,7 +735,7 @@ except ValueError:
     )
 
 # ---------------------------------------------------------
-# Test 16 - Cancel a Ready for Delivery Order
+# Test 17 - Cancel a Ready for Delivery Order
 # ---------------------------------------------------------
 
 try:
@@ -790,7 +790,7 @@ except ValueError:
     )
 
 # ---------------------------------------------------------
-# Test 17 - Cancel an Out for Delivery Order
+# Test 18 - Cancel an Out for Delivery Order
 # ---------------------------------------------------------
 
 try:
@@ -853,7 +853,7 @@ except ValueError:
     )
 
 # ---------------------------------------------------------
-# Test 18 - Cancel a Delivered Order
+# Test 19 - Cancel a Delivered Order
 # ---------------------------------------------------------
 
 try:
@@ -924,7 +924,7 @@ except ValueError:
     )
 
 # ---------------------------------------------------------
-# Test 19 - Status History Update Verification
+# Test 20 - Status History Update Verification
 # ---------------------------------------------------------
 
 try:
@@ -983,7 +983,7 @@ except Exception as e:
     )
 
 # ---------------------------------------------------------
-# Test 20 - Invalid Status Value
+# Test 21 - Invalid Status Value
 # ---------------------------------------------------------
 
 try:
@@ -1022,7 +1022,7 @@ except ValueError:
     )
 
 # ---------------------------------------------------------
-# Test 21 - Empty Order File
+# Test 22 - Empty Order File
 # ---------------------------------------------------------
 
 try:
@@ -1060,7 +1060,7 @@ except Exception as e:
     )
 
 # ---------------------------------------------------------
-# Test 22 - Performance Test (100 Orders)
+# Test 23 - Performance Test (100 Orders)
 # ---------------------------------------------------------
 
 try:
