@@ -8,11 +8,11 @@ Course: COMP 8500SEF Software Engineering, HKMU · Group 65
 
 | Area | Status |
 |---|---|
-| Product and inventory management | Completed (Increment 1) |
-| Customer ordering (sample order file) | Completed (Increment 2) |
-| Order fulfilment | Completed (Increment 2) |
-| Delivery management | In Progress (Increment 3) |
-| Order tracking | In Progress (Increment 3) |
+| Product and inventory management (Increment 1) |
+| Customer ordering (sample order file) (Increment 2) |
+| Order fulfilment (Increment 2) |
+| Delivery management (Increment 3) |
+| Order tracking (Increment 3) |
 
 The project is built in three increments, and each one is reviewed before the next starts. The repository currently contains the completed product and inventory modules of Increment 1, and the order modules being developed for Increment 2.
 
