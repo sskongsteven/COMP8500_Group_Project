@@ -10,11 +10,15 @@ import json
 import os
 import time
 
+# Import inventory function.
+from inventory import load_products
+
 # Import order management functions and status constants.
 from order import (
     load_orders,
     list_orders,
     view_order_details,
+    pack_order,
     update_order_status,
     STATUS_PACKED,
     STATUS_READY_FOR_DELIVERY,
@@ -23,8 +27,9 @@ from order import (
     STATUS_CANCELLED
 )
 
-# Name of temporary file used for testing.
-# This prevents changes to the actual orders.json.
+# Names of temporary files used for testing.
+# This prevents changes to the actual products.json and orders.json.
+TEST_PRODUCTS_FILE = "test_products.json"
 TEST_FILE = "test_orders.json"
 
 # ---------------------------------------------------------
@@ -41,7 +46,15 @@ sample_orders = [
         "delivery_address": "Test Address",
         "created_at": "2026-10-27T10:30:00",
         "status": "Pending",
-        "items": [],
+        "items": [
+            {
+                "product_id": "P001",
+                "product_name": "Notebook",
+                "price": "25.00",
+                "quantity": 2,
+                "line_total": "50.00"
+            }
+        ],
         "total": "100.00",
         "delivery": None,
         "status_history": [
@@ -53,10 +66,23 @@ sample_orders = [
     }
 ]
 
-# Create the initial test data file.
+# Create matching products.
+sample_products = [
+    {
+        "product_id": "P001",
+        "product_name": "Notebook",
+        "price": "25.00",
+        "stock_quantity": 10
+    }
+]
+
+# Create the initial test data files.
 with open(TEST_FILE, "w", encoding="utf-8") as f:
     json.dump(sample_orders, f, indent=2)
 
+with open(TEST_PRODUCTS_FILE, "w", encoding="utf-8") as f:
+    json.dump(sample_products, f, indent=2)
+    
 # Store all test results for summary reporting.
 results = []
 
@@ -157,7 +183,8 @@ try:
     order = update_order_status(
         "O001",
         STATUS_PACKED,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Record status result.
@@ -188,7 +215,8 @@ try:
     order = update_order_status(
         "O001",
         STATUS_READY_FOR_DELIVERY,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Record status result.
@@ -219,7 +247,8 @@ try:
     order = update_order_status(
         "O001",
         STATUS_OUT_FOR_DELIVERY,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Record status result.
@@ -250,7 +279,8 @@ try:
     order = update_order_status(
         "O001",
         STATUS_DELIVERED,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Record status result.
@@ -277,15 +307,19 @@ except Exception as e:
 # ---------------------------------------------------------
 
 try:
-    # Reset the test data file back to its original state before each test.
+    # Reset the test data files back to their original state before each test.
+    with open(TEST_PRODUCTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_products, f, indent=2)
+    
     with open(TEST_FILE, "w", encoding="utf-8") as f:
         json.dump(sample_orders, f, indent=2)
-
+               
     # Update order status to Cancelled.
     order = update_order_status(
         "O001",
         STATUS_CANCELLED,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Record status result.
@@ -312,7 +346,10 @@ except Exception as e:
 # ---------------------------------------------------------
 
 try:
-    # Reset the test data file back to its original state before each test.
+    # Reset the test data files back to their original state before each test.
+    with open(TEST_PRODUCTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_products, f, indent=2)
+        
     with open(TEST_FILE, "w", encoding="utf-8") as f:
         json.dump(sample_orders, f, indent=2)
 
@@ -320,14 +357,16 @@ try:
     update_order_status(
         "O001",
         STATUS_PACKED,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Update order status to Cancelled.
     update_order_status(
         "O001",
         STATUS_CANCELLED,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Record status result.
@@ -357,7 +396,7 @@ try:
     # View a non-existing order.
     view_order_details(
         "O999",
-        path=TEST_FILE
+        path=TEST_FILE,
     )
 
     # Record the status result.
@@ -384,7 +423,10 @@ except ValueError:
 # ---------------------------------------------------------
 
 try:
-    # Reset the test data file back to its original state before each test.
+    # Reset the test data files back to their original state before each test.
+    with open(TEST_PRODUCTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_products, f, indent=2)
+        
     with open(TEST_FILE, "w", encoding="utf-8") as f:
         json.dump(sample_orders, f, indent=2)
 
@@ -392,7 +434,8 @@ try:
     update_order_status(
         "O001",
         STATUS_PACKED,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Reload the order to verify that the updated status persists.
@@ -431,15 +474,19 @@ except Exception as e:
 # ---------------------------------------------------------
 
 try:
-    # Reset the test data file back to its original state before each test.
+    # Reset the test data files back to their original state before each test.
+    with open(TEST_PRODUCTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_products, f, indent=2)
+        
     with open(TEST_FILE, "w", encoding="utf-8") as f:
         json.dump(sample_orders, f, indent=2)
-
+        
     # Update order status to Ready for Delivery.
     update_order_status(
         "O001",
         STATUS_READY_FOR_DELIVERY,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Record failure because the invalid transition was accepted.
@@ -466,15 +513,19 @@ except ValueError:
 # ---------------------------------------------------------
 
 try:
-    # Reset the test data file back to its original state before each test.
+    # Reset the test data files back to their original state before each test.
+    with open(TEST_PRODUCTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_products, f, indent=2)
+        
     with open(TEST_FILE, "w", encoding="utf-8") as f:
         json.dump(sample_orders, f, indent=2)
-
+        
     # Update order status to Out for Delivery.
     update_order_status(
         "O001",
         STATUS_OUT_FOR_DELIVERY,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Record failure because the invalid transition was accepted.
@@ -501,15 +552,19 @@ except ValueError:
 # ---------------------------------------------------------
 
 try:
-    # Reset the test data file back to its original state before each test.
+    # Reset the test data files back to their original state before each test.
+    with open(TEST_PRODUCTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_products, f, indent=2)
+        
     with open(TEST_FILE, "w", encoding="utf-8") as f:
         json.dump(sample_orders, f, indent=2)
-
+        
     # Update order status to Delivered.
     update_order_status(
         "O001",
         STATUS_DELIVERED,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Record failure because the invalid transition was accepted.
@@ -536,7 +591,10 @@ except ValueError:
 # ---------------------------------------------------------
 
 try:
-    # Reset the test data file back to its original state before each test.
+    # Reset the test data files back to their original state before each test.
+    with open(TEST_PRODUCTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_products, f, indent=2)
+        
     with open(TEST_FILE, "w", encoding="utf-8") as f:
         json.dump(sample_orders, f, indent=2)
 
@@ -544,14 +602,16 @@ try:
     update_order_status(
         "O001",
         STATUS_PACKED,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Update order status to Out for Delivery.
     update_order_status(
         "O001",
         STATUS_OUT_FOR_DELIVERY,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Record failure because the invalid transition was accepted.
@@ -578,15 +638,19 @@ except ValueError:
 # ---------------------------------------------------------
 
 try:
-    # Reset the test data file back to its original state before each test.
+    # Reset the test data files back to their original state before each test.
+    with open(TEST_PRODUCTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_products, f, indent=2)
+        
     with open(TEST_FILE, "w", encoding="utf-8") as f:
         json.dump(sample_orders, f, indent=2)
-
+        
     # Update order status to Packed.
     update_order_status(
         "O001",
         STATUS_PACKED,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Update order status to Delivered.
@@ -620,29 +684,35 @@ except ValueError:
 # ---------------------------------------------------------
 
 try:
-    # Reset the test data file back to its original state before each test.
+    # Reset the test data files back to their original state before each test.
+    with open(TEST_PRODUCTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_products, f, indent=2)
+        
     with open(TEST_FILE, "w", encoding="utf-8") as f:
         json.dump(sample_orders, f, indent=2)
-
+       
     # Update order status to Packed.
     update_order_status(
         "O001",
         STATUS_PACKED,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Update order status to Ready for Delivery.
     update_order_status(
         "O001",
         STATUS_READY_FOR_DELIVERY,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Update order status to Delivered.
     update_order_status(
         "O001",
         STATUS_DELIVERED,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Record failure because the invalid transition was accepted.
@@ -669,29 +739,35 @@ except ValueError:
 # ---------------------------------------------------------
 
 try:
-    # Reset the test data file back to its original state before each test.
+    # Reset the test data files back to their original state before each test.
+    with open(TEST_PRODUCTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_products, f, indent=2)
+
     with open(TEST_FILE, "w", encoding="utf-8") as f:
         json.dump(sample_orders, f, indent=2)
-
+  
     # Update order status to Packed.
     update_order_status(
         "O001",
         STATUS_PACKED,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Update order status to Ready for Delivery.
     update_order_status(
         "O001",
         STATUS_READY_FOR_DELIVERY,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Update order status to Cancelled.
     update_order_status(
         "O001",
         STATUS_CANCELLED,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Record failure because the invalid transition was accepted.
@@ -718,36 +794,43 @@ except ValueError:
 # ---------------------------------------------------------
 
 try:
-    # Reset the test data file back to its original state before each test.
+    # Reset the test data files back to their original state before each test.
+    with open(TEST_PRODUCTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_products, f, indent=2)
+
     with open(TEST_FILE, "w", encoding="utf-8") as f:
         json.dump(sample_orders, f, indent=2)
-
+   
     # Update order status to Packed.
     update_order_status(
         "O001",
         STATUS_PACKED,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Update order status to Ready for Delivery.
     update_order_status(
         "O001",
         STATUS_READY_FOR_DELIVERY,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
     
     # Update order status to Out for Delivery.
     update_order_status(
         "O001",
         STATUS_OUT_FOR_DELIVERY,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
     
     # Update order status to Cancelled.
     update_order_status(
         "O001",
         STATUS_CANCELLED,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
     
     # Record failure because the invalid transition was accepted.
@@ -774,7 +857,10 @@ except ValueError:
 # ---------------------------------------------------------
 
 try:
-    # Reset the test data file back to its original state before each test.
+    # Reset the test data files back to their original state before each test.
+    with open(TEST_PRODUCTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_products, f, indent=2)
+
     with open(TEST_FILE, "w", encoding="utf-8") as f:
         json.dump(sample_orders, f, indent=2)
 
@@ -782,35 +868,40 @@ try:
     update_order_status(
         "O001",
         STATUS_PACKED,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
     
     # Update order status to Ready for Delivery.
     update_order_status(
         "O001",
         STATUS_READY_FOR_DELIVERY,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
     
     # Update order status to Out for Delivery.
     update_order_status(
         "O001",
         STATUS_OUT_FOR_DELIVERY,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
     
     # Update order status to Delivered.
     update_order_status(
         "O001",
         STATUS_DELIVERED,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
     
     # Update order status to Cancelled.
     update_order_status(
         "O001",
         STATUS_CANCELLED,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Record failure because the invalid transition was accepted.
@@ -837,7 +928,10 @@ except ValueError:
 # ---------------------------------------------------------
 
 try:
-    # Reset the test data file back to its original state before each test.
+    # Reset the test data files back to their original state before each test.
+    with open(TEST_PRODUCTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_products, f, indent=2)
+
     with open(TEST_FILE, "w", encoding="utf-8") as f:
         json.dump(sample_orders, f, indent=2)
 
@@ -845,7 +939,8 @@ try:
     order = update_order_status(
         "O001",
         STATUS_PACKED,
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Retrieve the latest status recorded in the history.
@@ -892,15 +987,19 @@ except Exception as e:
 # ---------------------------------------------------------
 
 try:
-    # Reset the test data file back to its original state before each test.
+    # Reset the test data files back to their original state before each test.
+    with open(TEST_PRODUCTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_products, f, indent=2)
+        
     with open(TEST_FILE, "w", encoding="utf-8") as f:
         json.dump(sample_orders, f, indent=2)
-
+        
     # Attempt to update the order using an invalid status value.
     update_order_status(
         "O001",
         "InvalidStatus",
-        path=TEST_FILE
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
     )
 
     # Record failure because the invalid transition was accepted.
@@ -1019,6 +1118,148 @@ except Exception as e:
     )
 
 # ---------------------------------------------------------
+# Test 24 - Pack order and deduct stock
+# ---------------------------------------------------------
+
+try:
+    # Reset the test data files back to their original state before each test.
+    with open(TEST_PRODUCTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_products, f, indent=2)
+
+    with open(TEST_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_orders, f, indent=2)
+
+    # Pack the order to deduct inventory stock.
+    pack_order(
+        "O001",
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
+    )
+
+    # Reload the products file to check the remaining stock quantity.
+    products = load_products(TEST_PRODUCTS_FILE)
+
+    # Verify that the stock quantity was reduced from 10 to 8.
+    passed = products[0]["stock_quantity"] == 8
+
+    # Record PASS/FAIL result.
+    record(
+        "Pack order and deduct stock",
+        "Stock quantity reduced from 10 to 8",
+        f"Remaining quantity = {products[0]['stock_quantity']}",
+        passed
+    )
+
+# Catch any unexpected error.
+except Exception as e:
+    record(
+        "Pack order and deduct stock",
+        "Stock quantity reduced from 10 to 8",
+        str(e),
+        False
+    )
+
+# ---------------------------------------------------------
+# Test 25 - Pack order with insufficient stock
+# ---------------------------------------------------------
+
+try:
+    # Temporarily set sample product stock to 1 (Order O001 requires 2).
+    sample_products[0]["stock_quantity"] = 1
+    
+    # Reset the test data files back to their original state before each test.
+    with open(TEST_PRODUCTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_products, f, indent=2)
+
+    with open(TEST_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_orders, f, indent=2)
+
+    try:
+        # Attempt to pack the order when stock is insufficient.
+        pack_order(
+            "O001",
+            path=TEST_FILE,
+            products_path=TEST_PRODUCTS_FILE
+        )
+        passed = False
+        actual = "No validation error raised"
+        
+    # Catch the expected validation error.
+    except ValueError:
+        passed = True
+        actual = "Validation error raised"
+    
+    # Record PASS/FAIL result.
+    record(
+        "Pack order with insufficient stock",
+        "Validation error raised",
+        actual,
+        passed
+    )
+
+# Catch any unexpected error.
+except Exception as e:
+    record(
+        "Pack order with insufficient stock",
+        "Validation error raised",
+        str(e),
+        False
+    )
+
+# ---------------------------------------------------------
+# Test 26 - Pack same order twice
+# ---------------------------------------------------------
+
+try:
+    # Reset sample product stock back to 10 so Test 26 can pack it successfully
+    sample_products[0]["stock_quantity"] = 10
+
+    # Reset the test data files back to their original state before each test.
+    with open(TEST_PRODUCTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_products, f, indent=2)
+        
+    with open(TEST_FILE, "w", encoding="utf-8") as f:
+        json.dump(sample_orders, f, indent=2)
+        
+    # Pack the order for the first time successfully.
+    pack_order(
+        "O001",
+        path=TEST_FILE,
+        products_path=TEST_PRODUCTS_FILE
+    )
+
+    try:
+        # Attempt to pack the same order a second time.
+        pack_order(
+            "O001",
+            path=TEST_FILE,
+            products_path=TEST_PRODUCTS_FILE
+        )
+        passed = False
+        actual = "No validation error raised"
+    # Catch the expected validation error.
+    except ValueError:
+        passed = True
+        actual = "Validation error raised"
+
+    # Record PASS/FAIL result.
+    record(
+        "Pack same order twice",
+        "Validation error raised",
+        actual,
+        passed
+    )
+
+# Catch any unexpected error.
+except Exception as e:
+    record(
+        "Pack same order twice",
+        "Validation error raised",
+        str(e),
+        False
+    )
+
+# ---------------------------------------------------------
 # Summary
 # ---------------------------------------------------------
 
@@ -1064,9 +1305,12 @@ print("=" * 60)
 # Remove test file
 # ---------------------------------------------------------
 
-# Remove the temporary test file to ensure
+# Remove the temporary test files to ensure
 # future test runs start with a clean environment.
+if os.path.exists(TEST_PRODUCTS_FILE):
+    os.remove(TEST_PRODUCTS_FILE)
+    
 if os.path.exists(TEST_FILE):
     os.remove(TEST_FILE)
 
-print("\nTest file removed: test_orders.json")
+print("\nTest files removed: test_products.json, test_orders.json")
