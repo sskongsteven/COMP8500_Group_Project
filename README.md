@@ -131,7 +131,7 @@ Products/orders.json holds a JSON list of order records:
 | delivery | object or null | Set when a delivery is assigned: delivery_method, driver_id, driver_name and delivery_status. Null only if no delivery has been assigned yet |
 | status_history | list | One entry per status change, each with status and the time it happened |
 
-Status transitions follow a fixed order: Pending to Packed to Ready for Delivery to Out for Delivery to Delivered. A Pending order may also be cancelled; once an order is Packed it can no longer be cancelled. Every change is appended to status_history.Every change is appended to status_history. Packing an order deducts its items from stock; if stock is insufficient, the order stays Pending.
+Status transitions follow a fixed order: Pending to Packed to Ready for Delivery to Out for Delivery to Delivered. A Pending order may also be cancelled; once an order is Packed it can no longer be cancelled. Every change is appended to status_history. Packing an order deducts its items from stock; if stock is insufficient, the order stays Pending.
 
 Orders are not created inside the application in this release; the menus work from the sample order file. Manual order entry is not implemented yet.
 
