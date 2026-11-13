@@ -38,7 +38,7 @@ The tests are implemented in Products/test_increment2.py. Each case records its 
 
 | # | Test | Expected result | Result |
 |---|---|---|---|
-| 1A | List all order | Correct order information displayed | PASS |
+| 1A | List all orders | Correct order information displayed | PASS |
 | 1B | View order details | Correct order information displayed | PASS |
 | 2 | Mark order as packed | Status changes to Packed | PASS |
 | 3 | Update to Ready for Delivery | Status changes successfully | PASS |
