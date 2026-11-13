@@ -1,4 +1,4 @@
-# COMP8500SEF Group 65 Project — E-Shop Logistics Management System
+# COMP 8500SEF Group 65 Project — E-Shop Logistics Management System
 
 A console-based inventory, order fulfilment, delivery and order tracking system for small e-shops, written in Python with JSON file storage instead of a database server.
 
@@ -11,8 +11,8 @@ Course: COMP 8500SEF Software Engineering, HKMU · Group 65
 | Product and inventory management | Completed (Increment 1) |
 | Customer ordering (sample order file) | Completed (Increment 2) |
 | Order fulfilment | Completed (Increment 2) |
-| Delivery management | Not started (Increment 3) |
-| Order tracking | Not started (Increment 3) |
+| Delivery management | In Progress (Increment 3) |
+| Order tracking | In Progress (Increment 3) |
 
 The project is built in three increments, and each one is reviewed before the next starts. The repository currently contains the completed product and inventory modules of Increment 1, and the order modules being developed for Increment 2.
 
