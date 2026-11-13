@@ -140,5 +140,5 @@ Orders are not created inside the application in this release; the menus work fr
 
 ## Open items
 
-1. Delivery management and order tracking are not started; option 3 in main_menu.py is a placeholder until Increment 3 is built.
+1. Delivery management and order tracking have started; option 3 in main_menu.py is a placeholder until Increment 3 is built.
 2. Manual order entry is not implemented; the order menus work from the sample order file.
