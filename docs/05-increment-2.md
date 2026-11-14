@@ -61,9 +61,9 @@ The tests are implemented in Products/test_increment2.py. Each case records its 
 | 21 | Invalid status value | Rejected | PASS |
 | 22 | Empty order file | Zero orders loaded successfully | PASS |
 | 23 | Performance test (100 orders) | 100 orders loaded within 2 seconds | PASS |
-{ 24 ] Pack order and deduct stock | Stock quantity reduced | PASS |
-[ 25 ] Pack order with insufficient stock | Rejected | PASS |
-[ 26 ] Pack same order twice | Rejected | PASS |
+| 24 | Pack order and deduct stock | Stock quantity reduced | PASS |
+| 25 | Pack order with insufficient stock | Rejected | PASS |
+| 26 | Pack same order twice | Rejected | PASS |
 
 Overall: 26 of 26 passed, a pass rate of 100%.
 
