@@ -38,31 +38,34 @@ The tests are implemented in Products/test_increment2.py. Each case records its 
 
 | # | Test | Expected result | Result |
 |---|---|---|---|
-| 1A | List all orders | Correct order information displayed | PASS |
-| 1B | View order details | Correct order information displayed | PASS |
-| 2 | Mark order as packed | Status changes to Packed | PASS |
-| 3 | Update to Ready for Delivery | Status changes successfully | PASS |
-| 4 | Update to Out for Delivery | Status changes successfully | PASS |
-| 5 | Update to Delivered | Status changes successfully | PASS |
-| 6 | Cancel a Pending order | Status changes to Cancelled | PASS |
-| 7 | Cancel a Packed order | Rejected | PASS |
-| 8 | Non-existing order | Error displayed | PASS |
-| 9 | Reopen program | Status persists | PASS |
-| 10 | Pending -> Ready for Delivery | Rejected | PASS |
-| 11 | Pending -> Out for Delivery | Rejected | PASS |
-| 12 | Pending -> Delivered | Rejected | PASS |
-| 13 | Packed -> Out for Delivery | Rejected | PASS |
-| 14 | Packed -> Delivered | Rejected | PASS |
-| 15 | Ready for Delivery -> Delivered | Rejected | PASS |
-| 16 | Cancel a Ready for Delivery order | Rejected | PASS |
-| 17 | Cancel an Out for Delivery order | Rejected | PASS |
-| 18 | Cancel a Delivered order | Rejected | PASS |
-| 19 | Status history update verification | New status appended to status_history | PASS |
-| 20 | Invalid status value | Rejected | PASS |
-| 21 | Empty order file | Zero orders loaded successfully | PASS |
-| 22 | Performance test (100 orders) | 100 orders loaded within 2 seconds | PASS |
+| 1 | List all orders | Correct order information displayed | PASS |
+| 1 | View order details | Correct order information displayed | PASS |
+| 3 | Mark order as packed | Status changes to Packed | PASS |
+| 4 | Update to Ready for Delivery | Status changes successfully | PASS |
+| 5 | Update to Out for Delivery | Status changes successfully | PASS |
+| 6 | Update to Delivered | Status changes successfully | PASS |
+| 7 | Cancel a Pending order | Status changes to Cancelled | PASS |
+| 8 | Cancel a Packed order | Rejected | PASS |
+| 9 | Non-existing order | Error displayed | PASS |
+| 10 | Reopen program | Status persists | PASS |
+| 12 | Pending -> Ready for Delivery | Rejected | PASS |
+| 12 | Pending -> Out for Delivery | Rejected | PASS |
+| 13 | Pending -> Delivered | Rejected | PASS |
+| 14 | Packed -> Out for Delivery | Rejected | PASS |
+| 15 | Packed -> Delivered | Rejected | PASS |
+| 16 | Ready for Delivery -> Delivered | Rejected | PASS |
+| 17 | Cancel a Ready for Delivery order | Rejected | PASS |
+| 18 | Cancel an Out for Delivery order | Rejected | PASS |
+| 19 | Cancel a Delivered order | Rejected | PASS |
+| 20 | Status history update verification | New status appended to status_history | PASS |
+| 21 | Invalid status value | Rejected | PASS |
+| 22 | Empty order file | Zero orders loaded successfully | PASS |
+| 23 | Performance test (100 orders) | 100 orders loaded within 2 seconds | PASS |
+{ 24 ] Pack order and deduct stock | Stock quantity reduced | PASS |
+[ 25 ] Pack order with insufficient stock | Rejected | PASS |
+[ 26 ] Pack same order twice | Rejected | PASS |
 
-Overall: 23 of 23 passed, a pass rate of 100%.
+Overall: 26 of 26 passed, a pass rate of 100%.
 
 ## 3 Limitations
 
