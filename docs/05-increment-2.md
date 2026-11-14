@@ -34,12 +34,12 @@ Two behaviours are worth stating because they are easy to miss. First, requestin
 ## 2 Test summary
 
 
-The tests are implemented in Products/test_increment2.py. Each case records its expected result, its actual result and a PASS or FAIL status, and the script prints a summary with the pass count and pass rate. Tests run against a temporary file, test_orders.json, which the script creates and deletes, so the real orders.json is never modified.
+The tests are implemented in Products/test_increment2.py. Each case records its expected result, its actual result and a PASS or FAIL status, and the script prints a summary with the pass count and pass rate. Tests run against two temporary files, test_products.json and test_orders.json, which the script creates and deletes, so the real products.json and orders.json are never modified.
 
 | # | Test | Expected result | Result |
 |---|---|---|---|
-| 1 | List all orders | Correct order information displayed | PASS |
-| 1 | View order details | Correct order information displayed | PASS |
+| 1 | List all orders | All orders return successfully | PASS |
+| 2 | View order details | Correct order information displayed | PASS |
 | 3 | Mark order as packed | Status changes to Packed | PASS |
 | 4 | Update to Ready for Delivery | Status changes successfully | PASS |
 | 5 | Update to Out for Delivery | Status changes successfully | PASS |
@@ -48,7 +48,7 @@ The tests are implemented in Products/test_increment2.py. Each case records its 
 | 8 | Cancel a Packed order | Rejected | PASS |
 | 9 | Non-existing order | Error displayed | PASS |
 | 10 | Reopen program | Status persists | PASS |
-| 12 | Pending -> Ready for Delivery | Rejected | PASS |
+| 11 | Pending -> Ready for Delivery | Rejected | PASS |
 | 12 | Pending -> Out for Delivery | Rejected | PASS |
 | 13 | Pending -> Delivered | Rejected | PASS |
 | 14 | Packed -> Out for Delivery | Rejected | PASS |
@@ -61,9 +61,9 @@ The tests are implemented in Products/test_increment2.py. Each case records its 
 | 21 | Invalid status value | Rejected | PASS |
 | 22 | Empty order file | Zero orders loaded successfully | PASS |
 | 23 | Performance test (100 orders) | 100 orders loaded within 2 seconds | PASS |
-| 24 | Pack order and deduct stock | Stock quantity reduced | PASS |
-| 25 | Pack order with insufficient stock | Rejected | PASS |
-| 26 | Pack same order twice | Rejected | PASS |
+| 24 | Pack order and deduct stock | Stock quantity reduced from 10 to 8 | PASS |
+| 25 | Pack order with insufficient stock | Validation error raised | PASS |
+| 26 | Pack same order twice | Validation error raised | PASS |
 
 Overall: 26 of 26 passed, a pass rate of 100%.
 
