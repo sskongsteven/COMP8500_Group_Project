@@ -1,6 +1,6 @@
 # Increment 2 — Documentation
 
-Group 65 · COMP 8500SEF Software Engineering · 13 November 2026
+Group 65 · COMP 8500SEF Software Engineering · 14 November 2026
 
 ## 1 Order workflow
 
