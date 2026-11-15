@@ -42,7 +42,7 @@ Two details follow from the code. The stock change validates the quantity after 
 
 ## 2 Test summary
 
-The tests are implemented in Products/test_increment1.py. Each case records its expected result, its actual result and a PASS or FAIL status, and the script prints a summary of how many passed. Tests run against a temporary file, test_products.json, which the script creates and deletes, so the real products.json is never modified.
+The tests are implemented in Products/test_increment1.py. Each case records its expected result, its actual result and a PASS or FAIL status, and the script prints a summary of how many passed. Tests run against a temporary file, test_products.json, which the script creates and deletes, so the real products.json is never modified. Results are printed as a PASS/FAIL summary rather than produced by a test framework.
 
 | # | Test | Expected result | Result |
 |---|---|---|---|
@@ -63,6 +63,8 @@ Overall: 12 of 12 passed. The performance case loaded 200 products in 0.0002 sec
 
 ## 3 Limitations
 
+This section describes Increment 1 as delivered on 26 October.
+
 | # | Limitation | Effect |
 |---|---|---|
 | 1 | main_menu.py is preliminary | Options 2 and 3 print a placeholder until Increment 2 and Increment 3 are built |
@@ -71,4 +73,3 @@ Overall: 12 of 12 passed. The performance case loaded 200 products in 0.0002 sec
 | 4 | Mock Mode is a development aid | When inventory.py cannot be imported the menu displays but nothing is read or written |
 | 5 | Non-numeric input is reported by Python | Entering text where a number is expected shows "invalid literal for int() with base 10" |
 | 6 | Only the inventory area is implemented | Ordering, order fulfilment, delivery and tracking are not built yet |
-| 7 | The tests use a temporary file | test_increment1.py creates and deletes test_products.json, so the real data file is never touched; results are printed as a PASS/FAIL summary rather than produced by a test framework |
