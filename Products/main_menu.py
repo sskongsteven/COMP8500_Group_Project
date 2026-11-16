@@ -7,22 +7,12 @@
 #          Delivery & Tracking modules.
 # ================================================================
 
-# Import the Inventory Menu module developed in Increment 1
-# and the Order Menu module developed in Increment 2.
+# Import the Inventory Menu module developed in Increment 1,
+# the Order Menu module developed in Increment 2,
+# and the Delivery Menu module developed in Increment 3.
 from inventory_menu import display_inventory_menu
 from order_menu import display_order_menu
-
-# Future imports (to be enabled after the corresponding modules are completed 
-# in Increment 3).
-# from delivery_menu import display_delivery_menu
-
-# Temporary function used until the Delivery & Tracking Module is implemented.
-def display_delivery_menu():
-    """
-    Placeholder.
-    Will be replaced by Increment 3 code.
-    """
-    print("\nDelivery & Tracking Module is under development.")
+from delivery_menu import display_delivery_menu
 
 # Display the system main menu and route users to the selected module.
 def display_main_menu():
