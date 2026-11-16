@@ -27,6 +27,8 @@ The project is built in three increments, and each one is reviewed before the ne
     │   ├── inventory_menu.py   Console menu for inventory operations
     │   ├── order.py            Order records and status transition rules
     │   ├── order_menu.py       Console menu for order operations
+    │   ├── delivery.py         Delivery assignment and tracking rules
+    │   ├── delivery_menu.py    Console menu for delivery operations
     │   ├── main_menu.py        Main entry point; routes to each module
     │   ├── products.json       Sample product data
     │   ├── orders.json         Sample order data
@@ -35,7 +37,8 @@ The project is built in three increments, and each one is reviewed before the ne
     └── docs/
         ├── 03-modules.md       Reference for every public function
         ├── 04-increment-1.md   Inventory workflow, test summary and limitations
-        └── 05-increment-2.md   Order workflow, test summary and limitations
+        ├── 05-increment-2.md   Order workflow, test summary and limitations
+        └── 06-increment-3.md   Delivery workflow, test summary and limitations
 
 ## Requirements
 
@@ -142,8 +145,9 @@ Orders are not created inside the application in this release; the menus work fr
 | docs/03-modules.md | Public function reference: inputs, outputs, raised errors and side effects |
 | docs/04-increment-1.md | Inventory workflow, test summary and limitations |
 | docs/05-increment-2.md | Order workflow, test summary and limitations |
+| docs/06-increment-3.md | Delivery workflow, test summary and limitations |
 
 ## Open items
 
-1. Delivery management and order tracking have started; option 3 in main_menu.py is a placeholder until Increment 3 is built.
+1. Delivery management and order tracking are implemented; delivery assignment cannot be changed once made, and the driver list is fixed in the code.
 2. Manual order entry is not implemented; the order menus work from the sample order file.
