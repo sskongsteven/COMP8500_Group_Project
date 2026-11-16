@@ -162,8 +162,8 @@ rather than with a message from `valid_stock`.
 
 ## 4.4 main_menu.py
 
-The module imports both menus at start-up: `inventory_menu` from Increment 1 and `order_menu` from
-Increment 2. The delivery menu is a local placeholder until Increment 3.
+The module imports three menus at start-up: `inventory_menu` from Increment 1, `order_menu` from
+Increment 2 and `delivery_menu` from Increment 3.
 
 ### display_main_menu() -> None
 
@@ -178,21 +178,9 @@ Increment 2. The delivery menu is a local placeholder until Increment 3.
 |---|---|---|
 | 1 | Product & Inventory Management | `display_inventory_menu()` |
 | 2 | Order & Fulfilment Management | `display_order_menu()` |
-| 3 | Delivery & Tracking Management | `display_delivery_menu()` (placeholder) |
+| 3 | Delivery & Tracking Management | `display_delivery_menu()` |
 | 0 | Exit | prints a closing message and leaves the loop |
 | other | Invalid | prints "Invalid option. Please select a number from the menu." |
-
-### display_delivery_menu() -> None
-
-| Item | Detail |
-|---|---|
-| Input | None |
-| Returns | None |
-| Raises | Nothing |
-| Side effects | Prints "Delivery & Tracking Module is under development." |
-
-This function is temporary. It keeps the third menu option usable while the Delivery & Tracking
-module is being built, and will be replaced by the real menu in Increment 3.
 
 ## 4.5 order.py
 
@@ -267,3 +255,101 @@ order is read or written.
 
 Packed and Cancelled have no entry of their own in option 3; they are reached through options 2
 and 4, which keeps the two rule-bound transitions visible in the menu.
+
+## 4.7 delivery.py
+
+The module owns the delivery and tracking area. It reads and writes `orders.json` directly: every
+order already carries a `delivery` object. A delivery moves through four states: `Unassigned`, `Assigned`, `In Transit` and `Delivered`.
+
+### load_orders(path=ORDERS_FILE) -> list
+
+| Item | Detail |
+|---|---|
+| Input | path: the JSON file to read; defaults to `orders.json` |
+| Returns | The list of order records; an empty list when the file does not exist |
+| Raises | `ValueError("<path> contains invalid JSON")` when the file cannot be parsed |
+| Side effects | Reads `orders.json` but does not modify it |
+
+### save_orders(orders, path=ORDERS_FILE) -> None
+
+| Item | Detail |
+|---|---|
+| Input | orders: the list of order records to save; path: the JSON file to write |
+| Returns | None |
+| Raises | `OSError` from the write, not wrapped |
+| Side effects | Writes to a temporary file in the same directory, syncs it, then replaces `orders.json` in one step |
+
+### find_order(order_id, path=ORDERS_FILE) -> tuple
+
+| Item | Detail |
+|---|---|
+| Input | order_id: the identifier to look for, e.g. `O001` |
+| Returns | A pair `(orders, order)`: the whole list and the matching record |
+| Raises | `ValueError("Order not found.")` if no record has that identifier |
+| Side effects | Reads `orders.json` but does not modify it |
+
+### assign_delivery(order_id) -> None
+
+| Item | Detail |
+|---|---|
+| Input | order_id; the delivery method is read from the console, and a driver ID when the method is Courier |
+| Returns | None — it prints "Delivery assigned successfully." |
+| Raises | `ValueError`: "Order not found.", "Only Packed orders can be assigned.", "Invalid delivery method." or "Invalid driver." |
+| Side effects | Sets the method, the driver and `delivery_status = "Assigned"`; sets the order status to "Ready for Delivery"; appends the change to `status_history`; writes `orders.json` |
+
+### start_delivery(order_id) -> None
+
+| Item | Detail |
+|---|---|
+| Input | order_id |
+| Returns | None — it prints "Delivery started successfully." |
+| Raises | `ValueError`: "Order not found." or "Delivery must be Assigned." |
+| Side effects | Sets `delivery_status = "In Transit"` and the order status to "Out for Delivery"; appends the change to `status_history`; writes `orders.json` |
+
+### complete_delivery(order_id) -> None
+
+| Item | Detail |
+|---|---|
+| Input | order_id |
+| Returns | None — it prints "Delivery completed successfully." |
+| Raises | `ValueError`: "Order not found." or "Delivery must be In Transit." |
+| Side effects | Sets `delivery_status = "Delivered"` and the order status to "Delivered"; appends the change to `status_history`; writes `orders.json` |
+
+### view_delivery(order_id) -> None
+
+| Item | Detail |
+|---|---|
+| Input | order_id |
+| Returns | None — it prints the method, the driver ID, the driver name and the delivery status |
+| Raises | `ValueError("Order not found.")` |
+| Side effects | Reads `orders.json` but does not modify it |
+
+### view_tracking(order_id) -> None
+
+| Item | Detail |
+|---|---|
+| Input | order_id |
+| Returns | None — it prints the order ID, the order status, the delivery status and every entry in `status_history` |
+| Raises | `ValueError("Order not found.")` |
+| Side effects | Reads `orders.json` but does not modify it |
+
+## 4.8 delivery_menu.py
+
+### display_delivery_menu() -> None
+
+| Item | Detail |
+|---|---|
+| Input | None — it reads the menu choice, the order selection and, for option 2, the delivery method and driver from the console |
+| Returns | None — it returns when option 6 is chosen |
+| Raises | Nothing itself. A `ValueError` from `delivery.py` is caught and printed with a prefix: `Assignment Rejected`, `Transition Rejected`, `Completion Rejected` or `Query Denied` |
+| Side effects | Prints the menu and the results, and calls the delivery functions, which may write `orders.json` |
+
+| Option | Action | Calls |
+|---|---|---|
+| 1 | View Delivery Details | `view_delivery(order_id)`; prints method, driver and delivery status |
+| 2 | Assign Delivery | `assign_delivery(order_id)`; asks for the method, then the driver for Courier |
+| 3 | Start Delivery | `start_delivery(order_id)` |
+| 4 | Complete Delivery | `complete_delivery(order_id)` |
+| 5 | View Order Tracking | `view_tracking(order_id)`; prints the whole status history |
+| 6 | Return to Main Menu | leaves the loop |
+| other | Invalid | prints "Selection Rejected: Invalid command token. Please select an option bounded between 1 and 6." |
