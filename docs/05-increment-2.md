@@ -31,6 +31,14 @@ Status machine:
 
 Two behaviours are worth stating because they are easy to miss. First, requesting the status an order already has is a no-op: the record is returned unchanged and no history entry is added. Second, every accepted change appends an entry to status_history with the new status and the time it happened, so the audit trail and the current status can never disagree.
 
+### Packing deducts stock
+
+`pack_order(order_id)` performs this step. It checks that the order is Pending and has items, combines repeated lines for the same product, and confirms that each product has enough stock. If any check fails, nothing is written and the error names the shortfall, for example "Insufficient stock for P001: required 3, available 1.". If every check passes, the quantities are subtracted, both files are saved, the order becomes Packed and the change is appended to `status_history`.
+
+An order can only be cancelled while Pending, so a cancelled order has not taken any stock.
+
+Implemented in Increment 2, 12 November 2026.
+
 ## 2 Test summary
 
 
