@@ -4,11 +4,11 @@ Group 65 · COMP 8500SEF Software Engineering · 14 November 2026
 
 ## 1 Order workflow
 
-Increment 2 adds the order area. Orders are read from orders.json; a staff member picks an order ID, and the program either shows the record or moves it to a new status. All rules live in order.py, so the menu cannot bypass them.
+Increment 2 adds the order area. Orders are read from orders.json; a staff member picks an order ID, and the program either shows the record or moves it to a new status. All rules live in order.py. Packing is the one operation that changes a second file: it deducts stock from `products.json` before the order becomes Packed.
 
     order_menu.py
       1 -> view one order: header, items, total and the full status history
-      2 -> mark as Packed
+      2 -> mark as Packed: checks the stock, deducts it, then saves both files
       3 -> update status: 1 Ready for Delivery / 2 Out for Delivery / 3 Delivered
       4 -> cancel: only allowed while the order is Pending
       5 -> return to the main menu
