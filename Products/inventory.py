@@ -1,4 +1,5 @@
 from decimal import Decimal, InvalidOperation
+from common import new_product
 from storage import PRODUCTS_FILE, load_products, save_products
 
 
@@ -61,13 +62,9 @@ def add_product(name, price, starting_stock, path=PRODUCTS_FILE):
         if product["product_id"].startswith("P")
            and product["product_id"][1:].isdigit()
     ]
-    product = {
-        # Adjust the product ID into format, e.g. P009
-        "product_id": f"P{max(numbers, default=0) + 1:03d}",
-        "product_name": name,
-        "price": price,
-        "stock_quantity": starting_stock,
-    }
+    product = new_product(
+        f"P{max(numbers, default=0) + 1:03d}", name, price, starting_stock
+    )
     products.append(product)
     save_products(products, path)
     return product

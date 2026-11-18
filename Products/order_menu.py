@@ -49,12 +49,11 @@ def display_order_menu():
         print("==================================")
         print("1. View Order Details")
         print("2. Mark Order as Packed")
-        print("3. Update Order Status")
-        print("4. Cancel a Pending Order")
-        print("5. Return to Main Menu")
+        print("3. Cancel a Pending Order")
+        print("4. Return to Main Menu")
         print("==================================")
         
-        choice = input("Please enter your selection (1-5): ").strip()
+        choice = input("Please enter your selection (1-4): ").strip()
         
         if choice == '1':
             
@@ -102,52 +101,22 @@ def display_order_menu():
                     print(f"Transition Rejected: {e}")
 
         elif choice == '3':
-            print("\n--- [Action] Update Order Status ---")
-            selected_id = select_order_from_list()
-            if selected_id == "BACK":
-                continue
-            if selected_id:
-                print("Available Status Choices:")
-                print("  1. Ready for Delivery")
-                print("  2. Out for Delivery")
-                print("  3. Delivered")
-                status_choice = input("Select new status option (1-3): ").strip()
-                
-                new_status = None
-                if status_choice == '1':
-                    new_status = ord_core.STATUS_READY_FOR_DELIVERY if ord_core else "Ready for Delivery"
-                elif status_choice == '2':
-                    new_status = ord_core.STATUS_OUT_FOR_DELIVERY if ord_core else "Out for Delivery"
-                elif status_choice == '3':
-                    new_status = ord_core.STATUS_DELIVERED if ord_core else "Delivered"
-                else:
-                    print("Invalid operational choice token. Mutation aborted.")
-                    continue
-                    
-                if ord_core:
-                    try:
-                        updated_order = ord_core.update_order_status(selected_id, new_status)
-                        print(f"Success: Order {updated_order['order_id']} successfully updated to: {updated_order['status']}")
-                    except ValueError as e:
-                        print(f"Update Aborted: {e}")
-
-        elif choice == '4':
             print("\n--- [Action] Cancel a Pending Order ---")
             selected_id = select_order_from_list()
             if selected_id == "BACK":
                 continue
             if selected_id and ord_core:
                 try:
-                    updated_order = ord_core.update_order_status(selected_id, ord_core.STATUS_CANCELLED)
+                    updated_order = ord_core.cancel_order(selected_id)
                     print(f"Success: Order {updated_order['order_id']} cancelled. Current state: {updated_order['status']}")
                 except ValueError as e:
                     print(f"Cancellation Refused: {e}")
 
-        elif choice == '5':
+        elif choice == '4':
             print("\nExiting sub-menu hierarchy. Returning to main console loop.")
             break
         else:
-            print("Selection Rejected: Invalid command token. Please select an option bounded between 1 and 5.")
+            print("Selection Rejected: Invalid command token. Please select an option bounded between 1 and 4.")
 
 if __name__ == "__main__":
     display_order_menu()

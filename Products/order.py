@@ -1,42 +1,23 @@
-import json
 from datetime import datetime
+from common import (
+    Order, STATUS_PENDING, STATUS_PACKED, STATUS_CANCELLED,
+    new_status_history_entry,
+)
 from inventory import find_product, valid_stock
-from storage import PRODUCTS_FILE, load_products, save_products
+from storage import (
+    PRODUCTS_FILE, ORDERS_FILE, load_products, save_products,
+    load_orders, save_orders,
+)
 
-ORDERS_FILE = "orders.json"
+# load_orders/save_orders are imported here for existing callers; storage owns them.
 
-# Strict Order Status Boundaries 
-STATUS_PENDING = "Pending"
-STATUS_PACKED = "Packed"
-STATUS_READY_FOR_DELIVERY = "Ready for Delivery"
-STATUS_OUT_FOR_DELIVERY = "Out for Delivery"
-STATUS_DELIVERED = "Delivered"
-STATUS_CANCELLED = "Cancelled"
-
-def load_orders(path=ORDERS_FILE):
-    """
-    Reads and parses the text-based local orders.json file.
-    """
-    try:
-        with open(path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return []
-
-def save_orders(orders, path=ORDERS_FILE):
-    """
-    Executes atomic serialized write-back to the local database file.
-    """
-    with open(path, 'w', encoding='utf-8') as f:
-        json.dump(orders, f, indent=2)
-
-def list_orders(path=ORDERS_FILE):
+def list_orders(path=ORDERS_FILE) -> list[Order]:
     """
     FUNCTION: Returns the full list of saved orders.
     """
     return load_orders(path)
 
-def view_order_details(order_id, path=ORDERS_FILE):
+def view_order_details(order_id, path=ORDERS_FILE) -> Order:
     """
     Retrieves and displays a specific customer order record by its unique ID.
     """
@@ -46,7 +27,7 @@ def view_order_details(order_id, path=ORDERS_FILE):
             return order
     raise ValueError(f"Order ID {order_id} was not found in the records.")
 
-def pack_order(order_id, path=ORDERS_FILE, products_path=PRODUCTS_FILE):
+def pack_order(order_id, path=ORDERS_FILE, products_path=PRODUCTS_FILE) -> Order:
     """Check every item, then deduct stock once and mark a Pending order Packed."""
     orders = load_orders(path)
     order = next((record for record in orders if record["order_id"] == order_id), None)
@@ -81,60 +62,24 @@ def pack_order(order_id, path=ORDERS_FILE, products_path=PRODUCTS_FILE):
     for product, quantity in deductions:
         product["stock_quantity"] -= quantity
     order["status"] = STATUS_PACKED
-    order["status_history"].append({"status": STATUS_PACKED, "at": datetime.now().isoformat()})
+    order["status_history"].append(
+        new_status_history_entry(STATUS_PACKED, datetime.now().isoformat())
+    )
     save_products(products, products_path)
     save_orders(orders, path)
     return order
 
-def update_order_status(order_id, new_status, path=ORDERS_FILE, products_path=PRODUCTS_FILE):
-    """
-    Every valid mutation automatically appends a timestamped log to status_history.
-    """
-    valid_statuses = [STATUS_PENDING, STATUS_PACKED, STATUS_READY_FOR_DELIVERY, STATUS_OUT_FOR_DELIVERY, STATUS_DELIVERED, STATUS_CANCELLED]
-    if new_status not in valid_statuses:
-        raise ValueError(f"Invalid status identifier token: {new_status}")
-
-    # Existing callers must use the same stock checks as the packing menu.
-    if new_status == STATUS_PACKED:
-        return pack_order(order_id, path, products_path)
-
+def cancel_order(order_id, path=ORDERS_FILE) -> Order:
+    """Cancel a Pending order without changing product stock."""
     orders = load_orders(path)
     for order in orders:
         if order["order_id"] == order_id:
-            current_status = order["status"]
-
-            # If target status matches current status, return without mutating logs
-            if current_status == new_status:
-                return order
-
-            # Prevent resetting a packed order and deducting its stock a second time.
-            if new_status == STATUS_PENDING:
-                raise ValueError("Rule Violation: An order cannot return to Pending.")
-                
-            # Only a Packed order can become Ready for Delivery.
-            if new_status == STATUS_READY_FOR_DELIVERY and current_status != STATUS_PACKED:
-                raise ValueError(f"Rule Violation: Only Packed orders can transition to Ready for Delivery. Current: {current_status}")
-                
-            # Only a Ready for Delivery order can become Out for Delivery.
-            if new_status == STATUS_OUT_FOR_DELIVERY and current_status != STATUS_READY_FOR_DELIVERY:
-                raise ValueError(f"Rule Violation: Only Ready for Delivery orders can transition to Out for Delivery. Current: {current_status}")
-                
-            # Only an Out for Delivery order can become Delivered.
-            if new_status == STATUS_DELIVERED and current_status != STATUS_OUT_FOR_DELIVERY:
-                raise ValueError(f"Rule Violation: Only Out for Delivery orders can transition to Delivered. Current: {current_status}")
-                
-            # A Pending order may be changed to Cancelled. Once Packed, it can no longer be Cancelled.
-            if new_status == STATUS_CANCELLED:
-                if current_status != STATUS_PENDING:
-                    raise ValueError(f"Rule Violation: Orders can only be cancelled while Pending. Packing has already structuralized this order.")
-
-            # Mutate state variables and record metadata
-            order["status"] = new_status
-            # Every status change must be recorded in status_history.
-            timestamp = datetime.now().isoformat()
-            order["status_history"].append({"status": new_status, "at": timestamp})
-            
+            if order["status"] != STATUS_PENDING:
+                raise ValueError("Only Pending orders can be cancelled.")
+            order["status"] = STATUS_CANCELLED
+            order["status_history"].append(
+                new_status_history_entry(STATUS_CANCELLED, datetime.now().isoformat())
+            )
             save_orders(orders, path)
             return order
-            
     raise ValueError(f"Order ID {order_id} was not found.")

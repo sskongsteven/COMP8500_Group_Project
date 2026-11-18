@@ -1,21 +1,15 @@
-import json
-import os
-import tempfile
 from datetime import datetime
-from pathlib import Path
-
-# File path for storing and loading order data records.
-ORDERS_FILE = Path("orders.json")
-
-# Define constant string values tracking delivery lifecycle stages.
-STATUS_UNASSIGNED = "Unassigned"
-STATUS_ASSIGNED = "Assigned"
-STATUS_IN_TRANSIT = "In Transit"
-STATUS_DELIVERED = "Delivered"
-
-# Define constant string values representing available delivery methods.
-DELIVERY_METHOD_COURIER = "Courier"
-DELIVERY_METHOD_SELF_PICKUP = "Self Pickup"
+from common import (
+    Order, STATUS_PACKED, STATUS_READY_FOR_DELIVERY, STATUS_OUT_FOR_DELIVERY,
+    STATUS_DELIVERED as ORDER_STATUS_DELIVERED,
+    DELIVERY_STATUS_UNASSIGNED as STATUS_UNASSIGNED,
+    DELIVERY_STATUS_ASSIGNED as STATUS_ASSIGNED,
+    DELIVERY_STATUS_IN_TRANSIT as STATUS_IN_TRANSIT,
+    DELIVERY_STATUS_DELIVERED as STATUS_DELIVERED,
+    DELIVERY_METHOD_COURIER, DELIVERY_METHOD_SELF_PICKUP,
+    new_delivery, new_status_history_entry,
+)
+from storage import ORDERS_FILE, load_orders, save_orders
 
 # Dictionary mapping registered driver IDs to their respective driver names.
 DRIVERS = {
@@ -24,49 +18,8 @@ DRIVERS = {
     "D003": "Peter"
 }
 
-# Load all customer orders from the JSON data file.
-def load_orders(path=ORDERS_FILE):
-    # Open and parse the orders JSON file.
-    path = Path(path)
-    if not path.exists():
-        return []
-    try:
-        with path.open("r", encoding="utf-8") as f:
-            return json.load(f)
-    except json.JSONDecodeError as error:
-        raise ValueError(f"{path} contains invalid JSON") from error
-
-# Save the updated list of orders back to the JSON data file. 
-def save_orders(orders, path=ORDERS_FILE):
-    # Executes atomic serialized write-back to the local orders JSON file
-    # using a temporary file to prevent file corruption.
-    path = Path(path)
-    temporary_path = None
-
-    try:
-        # Create a temporary file in the same directory
-        with tempfile.NamedTemporaryFile(
-                mode="w",
-                encoding="utf-8",
-                dir=path.parent,
-                suffix=".tmp",
-                delete=False,
-        ) as file:
-            temporary_path = Path(file.name)
-            # Write orders data into the temporary file
-            json.dump(orders, file, indent=2)
-            file.flush()
-            os.fsync(file.fileno())
-
-        # Atomically replace the original file with the new temporary file
-        os.replace(temporary_path, path)
-    finally:
-        # Ensure the temporary file is cleaned up if writing or replacing fails
-        if temporary_path is not None:
-            temporary_path.unlink(missing_ok=True)
-
 # Locate a specific order record by its unique order ID.
-def find_order(order_id, path=ORDERS_FILE):
+def find_order(order_id, path=ORDERS_FILE) -> tuple[list[Order], Order]:
     # Load the current orders list from storage.
     orders = load_orders(path)
 
@@ -79,12 +32,12 @@ def find_order(order_id, path=ORDERS_FILE):
     raise ValueError("Order not found.")
 
 # Assign a delivery method and driver (if applicable) to a packed order.
-def assign_delivery(order_id):
+def assign_delivery(order_id, path=ORDERS_FILE):
     # Retrieve the orders list and the target order record.
-    orders, order = find_order(order_id)
+    orders, order = find_order(order_id, path)
 
     # Ensure only orders with a "Packed" status can be assigned.
-    if order["status"] != "Packed":
+    if order["status"] != STATUS_PACKED:
         raise ValueError(
             "Only Packed orders can be assigned."
         )
@@ -99,8 +52,8 @@ def assign_delivery(order_id):
         "Select delivery method: "
     ).strip()
 
-    # Reference the delivery sub-dictionary for updates.
-    delivery = order["delivery"]
+    # Build a fresh delivery record; attach it only after inputs pass validation.
+    delivery = new_delivery()
 
     # Handle Courier delivery assignment and driver selection.
     if method_choice == "1":
@@ -156,16 +109,18 @@ def assign_delivery(order_id):
         STATUS_ASSIGNED
     )
 
+    order["delivery"] = delivery
+
     # Advance the overall order status to Ready for Delivery.
-    new_status = "Ready for Delivery"
+    new_status = STATUS_READY_FOR_DELIVERY
     order["status"] = new_status
 
     # Append a timestamped record to the order's status history trail.
     timestamp = datetime.now().isoformat()
-    order["status_history"].append({"status": new_status, "at": timestamp})
+    order["status_history"].append(new_status_history_entry(new_status, timestamp))
 
     # Persist the updated orders database to disk.
-    save_orders(orders)
+    save_orders(orders, path)
 
     # Output a success confirmation message to the console.
     print(
@@ -173,8 +128,8 @@ def assign_delivery(order_id):
     )
 
 # Change the status of the assigned delivery to In Transit / Out for Delivery.
-def start_delivery(order_id):
-    orders, order = find_order(order_id)
+def start_delivery(order_id, path=ORDERS_FILE):
+    orders, order = find_order(order_id, path)
 
     delivery = order["delivery"]
 
@@ -187,21 +142,21 @@ def start_delivery(order_id):
         STATUS_IN_TRANSIT
     )
 
-    new_status = "Out for Delivery"
+    new_status = STATUS_OUT_FOR_DELIVERY
     order["status"] = new_status
 
     timestamp = datetime.now().isoformat()
-    order["status_history"].append({"status": new_status, "at": timestamp})
+    order["status_history"].append(new_status_history_entry(new_status, timestamp))
 
-    save_orders(orders)
+    save_orders(orders, path)
 
     print(
         "\nDelivery started successfully."
     )
 
 # Mark an in-transit delivery as Delivered.
-def complete_delivery(order_id):
-    orders, order = find_order(order_id)
+def complete_delivery(order_id, path=ORDERS_FILE):
+    orders, order = find_order(order_id, path)
 
     delivery = order["delivery"]
 
@@ -214,21 +169,21 @@ def complete_delivery(order_id):
         STATUS_DELIVERED
     )
 
-    new_status = "Delivered"
+    new_status = ORDER_STATUS_DELIVERED
     order["status"] = new_status
 
     timestamp = datetime.now().isoformat()
-    order["status_history"].append({"status": new_status, "at": timestamp})
+    order["status_history"].append(new_status_history_entry(new_status, timestamp))
 
-    save_orders(orders)
+    save_orders(orders, path)
 
     print(
         "\nDelivery completed successfully."
     )
 
 # Display the delivery method, assigned driver, and delivery status of an order.
-def view_delivery(order_id):
-    _, order = find_order(order_id)
+def view_delivery(order_id, path=ORDERS_FILE):
+    _, order = find_order(order_id, path)
 
     delivery = order["delivery"]
 
@@ -256,8 +211,8 @@ def view_delivery(order_id):
     )
 
 # Display the current order status, delivery status, and full timestamped history.
-def view_tracking(order_id):
-    _, order = find_order(order_id)
+def view_tracking(order_id, path=ORDERS_FILE):
+    _, order = find_order(order_id, path)
 
     print("\nOrder Tracking")
     print("--------------------")
