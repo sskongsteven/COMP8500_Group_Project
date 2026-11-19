@@ -58,23 +58,26 @@ def assign_delivery(order_id, path=ORDERS_FILE):
     # Handle Courier delivery assignment and driver selection.
     if method_choice == "1":
         print("\nAvailable Drivers")
+        driver_list = list(DRIVERS.items())
 
-        # Iterate through the dictionary of registered drivers.
-        for driver_id, name in DRIVERS.items():
-            print(
-                f"{driver_id} - {name}"
-            )
+        # Display a numbered list of registered drivers.
+        for idx, (driver_id, name) in enumerate(driver_list, start=1):
+            print(f"{idx}. {driver_id} - {name}")
 
-        # Prompt staff to enter and format the target driver ID.
-        driver_id = input(
-            "\nDriver ID: "
-        ).strip().upper()
+        # Prompt staff to select a driver by number.
+        driver_choice_str = input(
+            "\nSelect driver: "
+        ).strip()
 
-        # Validate whether the entered driver ID exists.
-        if driver_id not in DRIVERS:
-            raise ValueError(
-                "Invalid driver."
-            )
+        try:
+            driver_choice = int(driver_choice_str)
+        except ValueError:
+            raise ValueError("Invalid driver.")
+
+        if driver_choice < 1 or driver_choice > len(driver_list):
+            raise ValueError("Invalid driver.")
+
+        driver_id, driver_name = driver_list[driver_choice - 1]
 
         # Assign Courier as the chosen delivery method.
         delivery["delivery_method"] = (
@@ -85,9 +88,7 @@ def assign_delivery(order_id, path=ORDERS_FILE):
         delivery["driver_id"] = driver_id
 
         # Record the corresponding driver name.
-        delivery["driver_name"] = (
-            DRIVERS[driver_id]
-        )
+        delivery["driver_name"] = driver_name
 
     # Handle Self Pickup assignment without a driver.
     elif method_choice == "2":
