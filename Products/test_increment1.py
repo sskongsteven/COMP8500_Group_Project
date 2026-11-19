@@ -1,502 +1,213 @@
 # =========================================================
-# Increment 1 - Testing & Validation
+# Increment 1 - Testing & Validation (unittest)
 # Prepared by Louis
-# Purpose: Verify that the Product & Inventory Module 
-#          functions correctly.
+# Purpose: Verify that the Product & Inventory Module
+#          functions correctly using unittest.
 # =========================================================
 
-# Import standard Python libraries.
-import os
 import time
+import unittest
+from pathlib import Path
 
-# Import inventory management functions.
 from inventory import (
     add_product,
-    update_product,
     change_stock,
     check_availability,
-    list_products
+    list_products,
+    update_product,
 )
 
-# Name of temporary file used for testing.
-# This prevents changes to the actual products.json.
-TEST_FILE = "test_products.json"
 
-# ---------------------------------------------------------
-# Create clean test file
-# ---------------------------------------------------------
+class TestIncrement1Inventory(unittest.TestCase):
+    # Unit tests for the Product & Inventory Module.
 
-# Remove any previous test file before testing.
-if os.path.exists(TEST_FILE):
-    os.remove(TEST_FILE)
+    def setUp(self):
+        # Create a clean temporary products JSON file before each test.
+        self.test_file = Path("test_products_unittest.json")
+        if self.test_file.exists():
+            self.test_file.unlink()
 
-# Store all test results for summary reporting.
-results = []
+    def tearDown(self):
+        # Remove the temporary products JSON file after each test.
+        if self.test_file.exists():
+            self.test_file.unlink()
 
-# Display the test result and save it to the summary list.
-def record(test_case, expected, actual, passed):
-    status = "PASS" if passed else "FAIL"
-    results.append(
-        (
-            test_case,
-            expected,
-            actual,
-            status
+    def test_01_add_valid_product(self):
+        # Add a valid product and verify it receives an ID and persists.
+        product = add_product(
+            "Testing Product",
+            "12.50",
+            20,
+            path=self.test_file,
         )
-    )
-    print("\n" + "-" * 60)
-    print(f"Test Case      : {test_case}")
-    print(f"Expected Result: {expected}")
-    print(f"Actual Result  : {actual}")
-    print(f"Result         : {status}")
-print("=" * 60)
-print("Increment 1 - Testing & Validation")
-print("=" * 60)
+        products = list_products(path=self.test_file)
 
-# ---------------------------------------------------------
-# Test 1 - Add a valid product
-# ---------------------------------------------------------
+        self.assertTrue(bool(product["product_id"]))
+        self.assertEqual(product["product_name"], "Testing Product")
+        self.assertEqual(product["price"], "12.50")
+        self.assertEqual(product["stock_quantity"], 20)
+        self.assertTrue(any(p["product_id"] == product["product_id"] for p in products))
 
-try:
-    # Create a valid test product.
-    product = add_product(
-        "Testing Product",
-        "12.50",
-        20,
-        path=TEST_FILE
-    )
-    products = list_products(path=TEST_FILE)
+    def test_02_add_product_empty_name_rejected(self):
+        # Reject a product with an empty or whitespace-only name.
+        with self.assertRaises(ValueError):
+            add_product(
+                "",
+                "12.50",
+                20,
+                path=self.test_file,
+            )
 
-    # Check whether the product was added successfully.
-    found = any(
-        p["product_id"] == product["product_id"]
-        for p in products
-    )
+        self.assertEqual(list_products(path=self.test_file), [])
 
-    # Record PASS/FAIL result.
-    record(
-        "Add a valid product",
-        "Product receives a unique ID and appears in inventory",
-        f"Created Product ID {product['product_id']}",
-        found
-    )
+    def test_03_add_product_negative_price_rejected(self):
+        # Reject a product with a negative price.
+        with self.assertRaises(ValueError):
+            add_product(
+                "Negative Price Product",
+                "-5.00",
+                20,
+                path=self.test_file,
+            )
 
-# Catch any unexpected error that occurs during this test.
-# Store the error message in variable 'e'.
-except Exception as e:
+        self.assertEqual(list_products(path=self.test_file), [])
 
-    # Record the error as the actual result.
-    record(
-        "Add a valid product",
-        "Product receives a unique ID and appears in inventory",
-        str(e),        # Convert the error message to text.
-        False          # Test failed.  
-    )
+    def test_04_add_product_negative_starting_stock_rejected(self):
+        # Reject a product with negative starting stock.
+        with self.assertRaises(ValueError):
+            add_product(
+                "Negative Stock Product",
+                "12.50",
+                -10,
+                path=self.test_file,
+            )
 
-# ---------------------------------------------------------
-# Test 2 - Add a product with an empty name
-# ---------------------------------------------------------
+        self.assertEqual(list_products(path=self.test_file), [])
 
-try:
-    # Attempt to create a product with an empty name.
-    add_product(
-        "",
-        "12.50",
-        20,
-        path=TEST_FILE
-    )
-
-    # Record True/False result.
-    record(
-        "Add a product with an empty name",
-        "Rejected, file unchanged",
-        "Empty product name accepted",
-        False
-    )
-
-# Catch any expected error.
-except ValueError:
-
-    # Record the error as the actual result
-    record(
-        "Add a product with an empty name",
-        "Rejected, file unchanged",
-        "Validation error raised",
-        True
-    )
-
-# ---------------------------------------------------------
-# Test 3 - Enter a negative or invalid price
-# ---------------------------------------------------------
-
-try:
-    # Attempt to create a product with a negative price.
-    add_product(
-        "Negative Price Product",
-        "-5.00",
-        20,
-        path=TEST_FILE
-    )
-
-    # Record True/False result.
-    record(
-        "Negative price",
-        "Rejected, file unchanged",
-        "Negative price accepted",
-        False
-    )
-
-# Catch any expected error.
-except ValueError:
-
-    # Record the error as the actual result
-    record(
-        "Negative price",
-        "Rejected, file unchanged",
-        "Validation error raised",
-        True
-    )
-
-# ---------------------------------------------------------
-# Test 4 - Enter negative starting stock
-# ---------------------------------------------------------
-
-try:
-    # Attempt to create a product with a negative starting stock.
-    add_product(
-        "Negative Stock Product",
-        "12.50",
-        -10,
-        path=TEST_FILE
-    )
-
-    # Record True/False result.
-    record(
-        "Negative starting stock",
-        "Rejected, file unchanged",
-        "Negative stock accepted",
-        False
-    )
-
-# Catch any expected error.
-except ValueError:
-
-    # Record the error as the actual result.
-    record(
-        "Negative starting stock",
-        "Rejected, file unchanged",
-        "Validation error raised",
-        True
-    )
-
-# ---------------------------------------------------------
-# Test 5 - Update product name or price
-# ---------------------------------------------------------
-
-try:
-    # Update the name and price of the test product.
-    updated = update_product(
-        product["product_id"],
-        name="Updated Testing Product",
-        price="15.00",
-        path=TEST_FILE
-    )
-
-    # Check whether the update was successful.
-    passed = (
-        updated["product_name"] == "Updated Testing Product"
-        and updated["price"] == "15.00"
-    )
-
-    # Record PASS/FAIL result.
-    record(
-        "Update product information",
-        "Changes reflected in inventory",
-        f"Name={updated['product_name']}, Price={updated['price']}",
-        passed
-    )
-
-# Catch any unexpected error.
-except Exception as e:
-
-    # Record the error as the actual result.
-    record(
-        "Update product information",
-        "Changes reflected in inventory",
-        str(e),
-        False
-    )
-
-# ---------------------------------------------------------
-# Test 6 - Add stock
-# ---------------------------------------------------------
-
-try:
-    # Add stock to the test product.
-    before = updated["stock_quantity"]
-    updated_stock = change_stock(
-        product["product_id"],
-        10,
-        path=TEST_FILE
-    )
-    actual_stock = updated_stock["stock_quantity"]
-
-    # Check whether the stock quantity increased successfully.
-    passed = (
-        actual_stock == before + 10
-    )
-
-    # Record PASS/FAIL result.
-    record(
-        "Add stock",
-        "Quantity in inventory increases",
-        f"Stock changed from {before} to {actual_stock}",
-        passed
-    )
-
-# Catch any unexpected error.
-except Exception as e:
-
-    # Record the error as the actual result.
-    record(
-        "Add stock",
-        "Quantity in inventory increases",
-        str(e),
-        False
-    )
-
-# ---------------------------------------------------------
-# Test 7 - Remove more stock than available
-# ---------------------------------------------------------
-
-try:
-    # Attempt to remove more stock than is available.
-    change_stock(
-        product["product_id"],
-        -100000,
-        path=TEST_FILE
-    )
-    
-    # Record True/False result.
-    record(
-        "Remove more stock than available",
-        "Rejected, quantity unchanged",
-        "Operation accepted",
-        False
-    )
-
-# Catch any expected error.
-except ValueError:
-
-    # Record the error as the actual result.
-    record(
-        "Remove more stock than available",
-        "Rejected, quantity unchanged",
-        "Validation error raised",
-        True
-    )
-
-# ---------------------------------------------------------
-# Test 8 - Select a non-existing product
-# ---------------------------------------------------------
-
-try:
-    # Update the non-existing product.
-    update_product(
-        "P999",
-        name="Dummy",
-        path=TEST_FILE
-    )
-
-    # Record True/False result.
-    record(
-        "Select a non-existing product",
-        "Show error, no change",
-        "Non-existing product accepted",
-        False
-    )
-
-# Catch any expected error.
-except ValueError:
-
-    # Record the error as the actual result.
-    record(
-        "Select a non-existing product",
-        "Show error, no change",
-        "Product not found error raised",
-        True
-    )
-
-# ---------------------------------------------------------
-# Test 9 - Check product availability
-# ---------------------------------------------------------
-
-try:
-    # Check the availability of the test product.
-    available = check_availability(
-        product["product_id"],
-        5,
-        path=TEST_FILE
-    )
-
-    # Record the availability check result.
-    record(
-        "Check product availability",
-        "True when sufficient stock exists",
-        f"Availability = {available}",
-        available
-    )
-
-# Catch any unexpected error.
-except Exception as e:
-
-    # Record the error as the actual result.
-    record(
-        "Check product availability",
-        "True when sufficient stock exists",
-        str(e),
-        False
-    )
-
-# ---------------------------------------------------------
-# Test 10 - Close and reopen program
-# ---------------------------------------------------------
-
-try:
-    # Reload product records from the test file.
-    reloaded_products = list_products(
-        path=TEST_FILE
-    )
-
-    # Check whether the product is still present after reloading.
-    found = any(
-        p["product_id"] == product["product_id"]
-        for p in reloaded_products
-    )
-
-    # Record PASS/FAIL result.
-    record(
-        "Close and reopen program",
-        "Products are correctly saved",
-        "Product found after reload",
-        found
-    )
-
-# Catch any unexpected error.
-except Exception as e:
-
-    # Record the error as the actual result.
-    record(
-        "Close and reopen program",
-        "Products are correctly saved",
-        str(e),
-        False
-    )
-
-# ---------------------------------------------------------
-# Test 11 - View Inventory
-# ---------------------------------------------------------
-
-try:
-    # Retrieve all product records from the test file.
-    products = list_products(path=TEST_FILE)
-
-    # Record list result.
-    record(
-        "View inventory",
-        "Inventory records are displayed",
-        f"{len(products)} products loaded",
-        len(products) > 0
-    )
-
-# Catch any unexpected error.
-except Exception as e:
-
-    record(
-        "View inventory",
-        "Inventory records are displayed",
-        str(e),
-        False
-    )
-
-# ---------------------------------------------------------
-# Test 12 - Performance test
-# ---------------------------------------------------------
-
-try:
-    # Create additional products until the
-    # test inventory contains 200 products.
-    current_products = list_products(
-        path=TEST_FILE
-    )
-    current_count = len(current_products)
-    for i in range(current_count + 1, 201):
-        add_product(
-            f"Performance Test Product {i}",
-            "10.00",
-            100,
-            path=TEST_FILE
+    def test_05_update_product_information(self):
+        # Update an existing product's name and price.
+        product = add_product(
+            "Testing Product",
+            "12.50",
+            20,
+            path=self.test_file,
         )
 
-    # Measure inventory retrieval performance.
-    start = time.time()
-    products = list_products(
-        path=TEST_FILE
-    )
-    end = time.time()
-    duration = end - start
+        updated = update_product(
+            product["product_id"],
+            name="Updated Testing Product",
+            price="15.00",
+            path=self.test_file,
+        )
 
-    # Confirm that 200 products exist.
-    actual_count = len(products)
+        self.assertEqual(updated["product_name"], "Updated Testing Product")
+        self.assertEqual(updated["price"], "15.00")
 
-    # Record performance result.
-    record(
-        "Performance test (inventory with 200 products)",
-        "200 products loaded within 2 seconds",
-        f"{actual_count} products loaded in {duration:.4f} seconds",
-        actual_count == 200 and duration < 2
-    )
+    def test_06_add_stock(self):
+        # Increase stock quantity when given a positive adjustment.
+        product = add_product(
+            "Testing Product",
+            "12.50",
+            20,
+            path=self.test_file,
+        )
 
-# Catch any unexpected error.
-except Exception as e:
+        updated_stock = change_stock(
+            product["product_id"],
+            10,
+            path=self.test_file,
+        )
 
-    # Record the error as the actual result.
-    record(
-        "Performance test (inventory with 200 products)",
-        "200 products loaded within 2 seconds",
-        str(e),
-        False
-    )
+        self.assertEqual(updated_stock["stock_quantity"], 30)
 
-# ---------------------------------------------------------
-# Summary
-# ---------------------------------------------------------
+    def test_07_remove_more_stock_than_available_rejected(self):
+        # Reject removing more stock than is currently available.
+        product = add_product(
+            "Testing Product",
+            "12.50",
+            20,
+            path=self.test_file,
+        )
 
-print("\n" + "=" * 60)
-print("TEST SUMMARY")
-print("=" * 60)
-pass_count = 0
-for item in results:
-    test_case, expected, actual, status = item
-    if status == "PASS":
-        pass_count += 1
+        with self.assertRaises(ValueError):
+            change_stock(
+                product["product_id"],
+                -100000,
+                path=self.test_file,
+            )
 
-    # Display the PASS/FAIL status for all test cases.
-    print(
-        f"{status:5} | {test_case}"
-    )
+        reloaded = list_products(path=self.test_file)
+        self.assertEqual(reloaded[0]["stock_quantity"], 20)
 
-# Calculate the total number of passed tests.
-print(
-    f"\nPassed: {pass_count}/{len(results)}"
-)
+    def test_08_update_non_existing_product_rejected(self):
+        # Raise ValueError when updating a non-existing product ID.
+        with self.assertRaises(ValueError):
+            update_product(
+                "P999",
+                name="Dummy",
+                path=self.test_file,
+            )
 
-# ---------------------------------------------------------
-# Remove test file
-# ---------------------------------------------------------
+    def test_09_check_product_availability(self):
+        # Return True when sufficient stock exists for requested quantity.
+        product = add_product(
+            "Testing Product",
+            "12.50",
+            20,
+            path=self.test_file,
+        )
 
-# Remove the temporary test file to ensure
-# future test runs start with a clean environment.
-if os.path.exists(TEST_FILE):
-    os.remove(TEST_FILE)
-print("\nTest file removed: test_products.json")
+        available = check_availability(
+            product["product_id"],
+            5,
+            path=self.test_file,
+        )
+
+        self.assertIs(available, True)
+
+    def test_10_close_and_reopen_persistence(self):
+        # Verify added product remains saved when reloading from disk.
+        product = add_product(
+            "Testing Product",
+            "12.50",
+            20,
+            path=self.test_file,
+        )
+
+        reloaded_products = list_products(path=self.test_file)
+        found = any(p["product_id"] == product["product_id"] for p in reloaded_products)
+
+        self.assertTrue(found)
+
+    def test_11_view_inventory(self):
+        # Verify stored product records are returned when listing inventory.
+        add_product("Product One", "10.00", 5, path=self.test_file)
+        add_product("Product Two", "20.00", 8, path=self.test_file)
+
+        products = list_products(path=self.test_file)
+
+        self.assertEqual(len(products), 2)
+
+    def test_12_performance_load_200_products(self):
+        # Verify loading 200 products takes less than 2 seconds.
+        for i in range(1, 201):
+            add_product(
+                f"Performance Test Product {i}",
+                "10.00",
+                100,
+                path=self.test_file,
+            )
+
+        start = time.perf_counter()
+        products = list_products(path=self.test_file)
+        duration = time.perf_counter() - start
+
+        print(f"\n    [Timing] Loaded {len(products)} products in {duration:.4f}s")
+        self.assertEqual(len(products), 200)
+        self.assertLess(duration, 2.0)
+
+if __name__ == "__main__":
+    print("=" * 60)
+    print("Increment 1 - Testing & Validation (unittest)")
+    print("=" * 60)
+    unittest.main(verbosity=2)
