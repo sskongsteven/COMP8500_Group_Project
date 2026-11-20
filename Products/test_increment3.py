@@ -1,375 +1,238 @@
-# =========================================================
-# Increment 3 - Testing & Validation
-# Author: CHEN ZHI YANG
-# Target: Verify the Delivery & Tracking Module
-#          functions correctly based on the Testing Plan.
-# =========================================================
-
 import io
 import json
-import os
 import time
+import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
-import delivery
-import storage
+from common import (
+    DELIVERY_METHOD_COURIER,
+    DELIVERY_METHOD_SELF_PICKUP,
+    DELIVERY_STATUS_ASSIGNED,
+    DELIVERY_STATUS_DELIVERED,
+    DELIVERY_STATUS_IN_TRANSIT,
+    DELIVERY_STATUS_UNASSIGNED,
+    STATUS_DELIVERED,
+    STATUS_OUT_FOR_DELIVERY,
+    STATUS_PACKED,
+    STATUS_PENDING,
+    STATUS_READY_FOR_DELIVERY,
+    new_delivery,
+    new_status_history_entry,
+)
+from delivery import (
+    assign_delivery,
+    complete_delivery,
+    find_order,
+    start_delivery,
+    view_delivery,
+    view_tracking,
+)
+from storage import load_orders, save_orders
 
-# Temporary test file name so real orders.json is never modified.
-TEST_FILE = Path("test_orders.json")
+class TestIncrement3Delivery(unittest.TestCase):
+    # Unit tests for the Delivery & Tracking Module.
 
-
-# ---------------------------------------------------------
-# Create sample test data
-# ---------------------------------------------------------
-
-def reset_test_data():
-    sample_orders = [
-        {
-            "order_id": "O001",
-            "customer_name": "Sample Customer A",
-            "delivery_address": "123 Nathan Road, Kowloon",
-            "created_at": "2026-11-10T09:00:00",
-            "status": "Packed",
-            "items": [],
-            "total": "100.00",
-            "delivery": {
-                "delivery_method": None,
-                "driver_id": None,
-                "driver_name": None,
-                "delivery_status": "Unassigned"
+    def setUp(self):
+        # Create a clean temporary orders file with sample data before each test.
+        self.orders_file = Path("test_orders_inc3_unittest.json")
+        self.sample_orders = [
+            {
+                "order_id": "O001",
+                "customer_name": "Customer A",
+                "delivery_address": "123 Nathan Road",
+                "created_at": "2026-11-10T09:00:00",
+                "status": STATUS_PACKED,
+                "items": [],
+                "total": "100.00",
+                "delivery": new_delivery(),
+                "status_history": [
+                    new_status_history_entry(STATUS_PENDING, "2026-11-10T09:00:00"),
+                    new_status_history_entry(STATUS_PACKED, "2026-11-10T09:30:00"),
+                ],
             },
-            "status_history": [
-                {"status": "Pending", "at": "2026-11-10T09:00:00"},
-                {"status": "Packed", "at": "2026-11-10T09:30:00"}
-            ]
-        },
-        {
-            "order_id": "O002",
-            "customer_name": "Sample Customer B",
-            "delivery_address": "456 Queen's Road, Central",
-            "created_at": "2026-11-10T10:00:00",
-            "status": "Packed",
-            "items": [],
-            "total": "50.00",
-            "delivery": {
-                "delivery_method": None,
-                "driver_id": None,
-                "driver_name": None,
-                "delivery_status": "Unassigned"
+            {
+                "order_id": "O002",
+                "customer_name": "Customer B",
+                "delivery_address": "456 Queen's Road",
+                "created_at": "2026-11-10T10:00:00",
+                "status": STATUS_PENDING,
+                "items": [],
+                "total": "50.00",
+                "delivery": new_delivery(),
+                "status_history": [
+                    new_status_history_entry(STATUS_PENDING, "2026-11-10T10:00:00"),
+                ],
             },
-            "status_history": [
-                {"status": "Pending", "at": "2026-11-10T10:00:00"},
-                {"status": "Packed", "at": "2026-11-10T10:15:00"}
-            ]
-        },
-        {
-            "order_id": "O003",
-            "customer_name": "Sample Customer C",
-            "delivery_address": "789 Hennessy Road, Wan Chai",
-            "created_at": "2026-11-10T11:00:00",
-            "status": "Pending",
-            "items": [],
-            "total": "80.00",
-            "delivery": {
-                "delivery_method": None,
-                "driver_id": None,
-                "driver_name": None,
-                "delivery_status": "Unassigned"
-            },
-            "status_history": [
-                {"status": "Pending", "at": "2026-11-10T11:00:00"}
-            ]
-        }
-    ]
-    with open(TEST_FILE, "w", encoding="utf-8") as f:
-        json.dump(sample_orders, f, indent=2)
+        ]
 
-# Initialize test data file.
-reset_test_data()
+        save_orders(self.sample_orders, self.orders_file)
 
-# Store all test results for summary reporting.
-results = []
-
-def record(test_case, expected, actual, passed):
-    status = "PASS" if passed else "FAIL"
-    results.append((test_case, expected, actual, status))
-    print("\n" + "-" * 60)
-    print(f"Test Case      : {test_case}")
-    print(f"Expected Result: {expected}")
-    print(f"Actual Result  : {actual}")
-    print(f"Result         : {status}")
-
-print("=" * 60)
-print("Increment 3 - Delivery & Tracking Testing & Validation")
-print("=" * 60)
-
-try:
-    # ---------------------------------------------------------
-    # Test 1 - View delivery details
-    # ---------------------------------------------------------
-    try:
+    def tearDown(self):
+        # Remove temporary test file after each test.
+        if self.orders_file.exists():
+            self.orders_file.unlink()
+    
+    def test_01_view_delivery_details(self):
+        # Verify delivery details are displayed accurately for a valid order.
         buf = io.StringIO()
         with redirect_stdout(buf):
-            delivery.view_delivery("O001",path=TEST_FILE)
+            view_delivery("O001", path=self.orders_file)
         output = buf.getvalue()
-        passed = ("Delivery Information" in output) and ("Unassigned" in output)
-        record(
-            "Test 1: View delivery details",
-            "Correct delivery information displayed",
-            "Delivery details displayed accurately",
-            passed
-        )
-    except Exception as e:
-        record("Test 1: View delivery details", "Correct delivery information displayed", str(e), False)
+        self.assertIn("Delivery Information", output)
+        self.assertIn("Unassigned", output)
 
-    # ---------------------------------------------------------
-    # Test 2 - View order tracking
-    # ---------------------------------------------------------
-    try:
+    def test_02_view_order_tracking(self):
+            # Verify current status and status history are displayed correctly.
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                view_tracking("O001", path=self.orders_file)
+            output = buf.getvalue()
+            self.assertIn("Order Tracking", output)
+            self.assertIn(STATUS_PACKED, output)
+            self.assertIn("Status History", output)
+
+    def test_03_assign_courier_delivery(self):
+        # Verify assigning Courier delivery with driver choice 1 (D001 - Thomas).
         buf = io.StringIO()
-        with redirect_stdout(buf):
-            delivery.view_tracking("O001",path=TEST_FILE)
-        output = buf.getvalue()
-        passed = ("Order Tracking" in output) and ("Packed" in output) and ("Status History" in output)
-        record(
-            "Test 2: View order tracking",
-            "Current status and status history displayed correctly",
-            "Tracking status and history displayed",
-            passed
-        )
-    except Exception as e:
-        record("Test 2: View order tracking", "Current status and status history displayed correctly", str(e), False)
+        with patch("builtins.input", side_effect=["1", "1"]), redirect_stdout(buf):
+            assign_delivery("O001", path=self.orders_file)
+        _, order = find_order("O001", self.orders_file)
+        self.assertEqual(order["delivery"]["delivery_method"], DELIVERY_METHOD_COURIER)
+        self.assertEqual(order["delivery"]["driver_id"], "D001")
+        self.assertEqual(order["delivery"]["driver_name"], "Thomas")
+        self.assertEqual(order["delivery"]["delivery_status"], DELIVERY_STATUS_ASSIGNED)
+        self.assertEqual(order["status"], STATUS_READY_FOR_DELIVERY)
 
-    # ---------------------------------------------------------
-    # Test 3 - Assign Courier delivery
-    # ---------------------------------------------------------
-    try:
-        buf = io.StringIO()
-        with patch("builtins.input", side_effect=["1", "D001"]), redirect_stdout(buf):
-            delivery.assign_delivery("O001",path=TEST_FILE)
-        _, order = delivery.find_order("O001", TEST_FILE)
-        passed = (
-            order["delivery"]["delivery_method"] == "Courier"
-            and order["delivery"]["driver_id"] == "D001"
-            and order["delivery"]["driver_name"] == "Thomas"
-            and order["delivery"]["delivery_status"] == "Assigned"
-            and order["status"] == "Ready for Delivery"
-        )
-        record(
-            "Test 3: Assign Courier delivery",
-            "Delivery assigned successfully",
-            f"Method={order['delivery']['delivery_method']}, Driver={order['delivery']['driver_id']}, OrderStatus={order['status']}",
-            passed
-        )
-    except Exception as e:
-        record("Test 3: Assign Courier delivery", "Delivery assigned successfully", str(e), False)
-
-    # ---------------------------------------------------------
-    # Test 4 - Assign Self Pickup delivery
-    # ---------------------------------------------------------
-    try:
+    def test_04_assign_self_pickup_delivery(self):
+        # Verify assigning Self Pickup delivery without a driver.
         buf = io.StringIO()
         with patch("builtins.input", side_effect=["2"]), redirect_stdout(buf):
-            delivery.assign_delivery("O002",path=TEST_FILE)
-        _, order = delivery.find_order("O002", TEST_FILE)
-        passed = (
-            order["delivery"]["delivery_method"] == "Self Pickup"
-            and order["delivery"]["driver_id"] is None
-            and order["delivery"]["delivery_status"] == "Assigned"
-            and order["status"] == "Ready for Delivery"
-        )
-        record(
-            "Test 4: Assign Self Pickup delivery",
-            "Delivery assigned successfully",
-            f"Method={order['delivery']['delivery_method']}, Driver={order['delivery']['driver_id']}, OrderStatus={order['status']}",
-            passed
-        )
-    except Exception as e:
-        record("Test 4: Assign Self Pickup delivery", "Delivery assigned successfully", str(e), False)
+            assign_delivery("O001", path=self.orders_file)
+        _, order = find_order("O001", self.orders_file)
+        self.assertEqual(order["delivery"]["delivery_method"], DELIVERY_METHOD_SELF_PICKUP)
+        self.assertIsNone(order["delivery"]["driver_id"])
+        self.assertEqual(order["delivery"]["delivery_status"], DELIVERY_STATUS_ASSIGNED)
+        self.assertEqual(order["status"], STATUS_READY_FOR_DELIVERY)
 
-    # ---------------------------------------------------------
-    # Test 5 - Assign delivery to non-Packed order (Refusal)
-    # ---------------------------------------------------------
-    try:
-        with patch("builtins.input", side_effect=["1", "D001"]):
-            delivery.assign_delivery("O003",path=TEST_FILE)
-        record("Test 5: Assign delivery to non-Packed order", "Rejected", "Allowed unexpectedly", False)
-    except ValueError as e:
-        record("Test 5: Assign delivery to non-Packed order", "Rejected", f"Rejected ({e})", True)
+    def test_05_reject_assign_non_packed_order(self):
+            # Reject delivery assignment when order status is not Packed (O002 is Pending).
+            with patch("builtins.input", side_effect=["1", "1"]):
+                with self.assertRaises(ValueError):
+                    assign_delivery("O002", path=self.orders_file)
 
-    # ---------------------------------------------------------
-    # Test 6 - Assign Courier with invalid driver ID (Refusal)
-    # ---------------------------------------------------------
-    try:
-        # Reset O002 to Packed for testing invalid driver
-        orders = storage.load_orders(TEST_FILE)
-        for o in orders:
-            if o["order_id"] == "O002":
-                o["status"] = "Packed"
-                o["delivery"]["delivery_status"] = "Unassigned"
-        storage.save_orders(orders, TEST_FILE)
-
+    def test_06_reject_invalid_driver_selection(self):
+        # Reject Courier delivery when an invalid driver number is entered.
         buf = io.StringIO()
-        with patch("builtins.input", side_effect=["1", "D999"]), redirect_stdout(buf):
-            delivery.assign_delivery("O002",path=TEST_FILE)
-        record("Test 6: Assign Courier with invalid driver ID", "Rejected", "Allowed unexpectedly", False)
-    except ValueError as e:
-        record("Test 6: Assign Courier with invalid driver ID", "Rejected", f"Rejected ({e})", True)
+        with patch("builtins.input", side_effect=["1", "99"]), redirect_stdout(buf):
+            with self.assertRaises(ValueError):
+                assign_delivery("O001", path=self.orders_file)
 
-    # ---------------------------------------------------------
-    # Test 7 - Start delivery after assignment
-    # ---------------------------------------------------------
-    try:
+    def test_07_start_delivery_after_assignment(self):
+        # Verify starting an Assigned delivery updates statuses to In Transit and Out for Delivery.
         buf = io.StringIO()
+        with patch("builtins.input", side_effect=["1", "1"]), redirect_stdout(buf):
+            assign_delivery("O001", path=self.orders_file)
         with redirect_stdout(buf):
-            delivery.start_delivery("O001",path=TEST_FILE)
-        _, order = delivery.find_order("O001", TEST_FILE)
-        passed = (
-            order["delivery"]["delivery_status"] == "In Transit"
-            and order["status"] == "Out for Delivery"
-        )
-        record(
-            "Test 7: Start delivery after assignment",
-            "Delivery Status becomes In Transit and Order Status becomes Out for Delivery",
-            f"Delivery={order['delivery']['delivery_status']}, Order={order['status']}",
-            passed
-        )
-    except Exception as e:
-        record("Test 7: Start delivery after assignment", "Delivery Status becomes In Transit and Order Status becomes Out for Delivery", str(e), False)
+            start_delivery("O001", path=self.orders_file)
+        _, order = find_order("O001", self.orders_file)
+        self.assertEqual(order["delivery"]["delivery_status"], DELIVERY_STATUS_IN_TRANSIT)
+        self.assertEqual(order["status"], STATUS_OUT_FOR_DELIVERY)
 
-    # ---------------------------------------------------------
-    # Test 8 - Start delivery before assignment (Refusal)
-    # ---------------------------------------------------------
-    try:
-        delivery.start_delivery("O002",path=TEST_FILE)
-        record("Test 8: Start delivery before assignment", "Rejected", "Allowed unexpectedly", False)
-    except ValueError as e:
-        record("Test 8: Start delivery before assignment", "Rejected", f"Rejected ({e})", True)
-# ---------------------------------------------------------
-# Test 9 - Complete delivery successfully
-# ---------------------------------------------------------
-    try:
+    def test_08_reject_start_delivery_before_assignment(self):
+        # Reject starting delivery when delivery status is still Unassigned.
+        with self.assertRaises(ValueError):
+            start_delivery("O001", path=self.orders_file)
+
+    def test_09_complete_delivery_successfully(self):
+            # Verify completing an In Transit delivery updates both statuses to Delivered.
+            buf = io.StringIO()
+            with patch("builtins.input", side_effect=["1", "1"]), redirect_stdout(buf):
+                assign_delivery("O001", path=self.orders_file)
+            with redirect_stdout(buf):
+                start_delivery("O001", path=self.orders_file)
+                complete_delivery("O001", path=self.orders_file)
+            _, order = find_order("O001", self.orders_file)
+            self.assertEqual(order["delivery"]["delivery_status"], DELIVERY_STATUS_DELIVERED)
+            self.assertEqual(order["status"], STATUS_DELIVERED)
+    
+    def test_10_reject_complete_delivery_before_in_transit(self):
+        # Reject completing delivery when delivery status is not In Transit.
+        with self.assertRaises(ValueError):
+            complete_delivery("O001", path=self.orders_file)
+
+    def test_11_reopen_program_persistence(self):
+        # Verify updated delivery details persist after reloading from disk.
         buf = io.StringIO()
-        with redirect_stdout(buf):
-            delivery.complete_delivery("O001",path=TEST_FILE)
-        _, order = delivery.find_order("O001", TEST_FILE)
-        passed = (
-            order["delivery"]["delivery_status"] == "Delivered"
-            and order["status"] == "Delivered"
-        )
-        record(
-            "Test 9: Complete delivery successfully",
-            "Delivery Status becomes Delivered and Order Status becomes Delivered",
-            f"Delivery={order['delivery']['delivery_status']}, Order={order['status']}",
-            passed
-        )
-    except Exception as e:
-        record("Test 9: Complete delivery successfully", "Delivery Status becomes Delivered and Order Status becomes Delivered", str(e), False)
-# ---------------------------------------------------------
-# Test 10 - Complete delivery before In Transit (Refusal)
-# ---------------------------------------------------------
-    try:
-        delivery.complete_delivery("O002",path=TEST_FILE)
-        record("Test 10: Complete delivery before In Transit", "Rejected", "Allowed unexpectedly", False)
-    except ValueError as e:
-        record("Test 10: Complete delivery before In Transit", "Rejected", f"Rejected ({e})", True)
-# ---------------------------------------------------------
-# Test 11 - Reopen program (Data persistence after reload)
-# ---------------------------------------------------------
-    try:
-        reloaded_orders = delivery.load_orders(TEST_FILE)
+        with patch("builtins.input", side_effect=["1", "1"]), redirect_stdout(buf):
+            assign_delivery("O001", path=self.orders_file)
+        reloaded_orders = load_orders(self.orders_file)
         o1_reloaded = next(o for o in reloaded_orders if o["order_id"] == "O001")
-        passed = (
-            o1_reloaded["delivery"]["delivery_status"] == "Delivered"
-            and o1_reloaded["delivery"]["driver_id"] == "D001"
-            and o1_reloaded["status"] == "Delivered"
-        )
-        record(
-            "Test 11: Reopen program (Persistence check)",
-            "Delivery information persists after reload",
-            f"Reloaded DeliveryStatus={o1_reloaded['delivery']['delivery_status']}, Driver={o1_reloaded['delivery']['driver_id']}",
-            passed
-        )
-    except Exception as e:
-        record("Test 11: Reopen program (Persistence check)", "Delivery information persists after reload", str(e), False)
-# ---------------------------------------------------------
-# Test 12 - Invalid order ID (Refusal)
-# ---------------------------------------------------------
-    try:
-        delivery.find_order("O999", TEST_FILE)
-        record("Test 12: Invalid order ID", "Error displayed", "Order found unexpectedly", False)
-    except ValueError as e:
-        record("Test 12: Invalid order ID", "Error displayed", f"Error raised ({e})", True)
-# ---------------------------------------------------------
-# Test 13 - Delivery status history verification
-# ---------------------------------------------------------
-    try:
-        _, order = delivery.find_order("O001", TEST_FILE)
+        self.assertEqual(o1_reloaded["delivery"]["delivery_status"], DELIVERY_STATUS_ASSIGNED)
+        self.assertEqual(o1_reloaded["delivery"]["driver_id"], "D001")
+
+    def test_12_reject_invalid_order_id(self):
+            # Raise ValueError when querying a non-existing order ID.
+            with self.assertRaises(ValueError):
+                find_order("O999", self.orders_file)
+
+    def test_13_delivery_status_history_verification(self):
+        # Verify each delivery transition appends a new status entry to status_history.
+        buf = io.StringIO()
+        with patch("builtins.input", side_effect=["1", "1"]), redirect_stdout(buf):
+            assign_delivery("O001", path=self.orders_file)
+        with redirect_stdout(buf):
+            start_delivery("O001", path=self.orders_file)
+            complete_delivery("O001", path=self.orders_file)
+        _, order = find_order("O001", self.orders_file)
         history_statuses = [entry["status"] for entry in order["status_history"]]
-        expected_chain = ["Pending", "Packed", "Ready for Delivery", "Out for Delivery", "Delivered"]
-        passed = (history_statuses == expected_chain)
-        record(
-            "Test 13: Delivery status history verification",
-            "New status appended to status_history",
-            f"History = {' -> '.join(history_statuses)}",
-            passed
-        )
-    except Exception as e:
-        record("Test 13: Delivery status history verification", "New status appended to status_history", str(e), False)
-# ---------------------------------------------------------
-# Test 14 - Delivery performance test (100 records < 2.0s)
-# ---------------------------------------------------------
-    try:
-        perf_orders = []
-        for i in range(1, 101):
-            perf_orders.append({
-                "order_id": f"O{i:03d}",
+        expected_chain = [
+            STATUS_PENDING,
+            STATUS_PACKED,
+            STATUS_READY_FOR_DELIVERY,
+            STATUS_OUT_FOR_DELIVERY,
+            STATUS_DELIVERED,
+        ]
+        self.assertEqual(history_statuses, expected_chain)
+
+    def test_14_performance_load_100_delivery_orders(self):
+        # Verify loading 100 delivery records takes less than 2.0 seconds.
+        perf_orders = [
+            {
+                "order_id": f"O{i:03}",
                 "customer_name": f"Customer {i}",
                 "delivery_address": "Sample Address",
                 "created_at": "2026-11-10T09:00:00",
-                "status": "Delivered",
+                "status": STATUS_DELIVERED,
                 "items": [],
                 "total": "50.00",
                 "delivery": {
-                    "delivery_method": "Courier",
+                    "delivery_method": DELIVERY_METHOD_COURIER,
                     "driver_id": "D001",
                     "driver_name": "Thomas",
-                    "delivery_status": "Delivered"
+                    "delivery_status": DELIVERY_STATUS_DELIVERED,
                 },
-                "status_history": [{"status": "Delivered", "at": "2026-11-10T12:00:00"}]
-            })
-        delivery.save_orders(perf_orders, TEST_FILE)
+                "status_history": [
+                    new_status_history_entry(STATUS_DELIVERED, "2026-11-10T12:00:00")
+                ],
+            }
+            for i in range(1, 101)
+        ]
+        with self.orders_file.open("w", encoding="utf-8") as f:
+            json.dump(perf_orders, f, indent=2)
 
-        start_time = time.perf_counter()
-        loaded = delivery.load_orders(TEST_FILE)
-        elapsed = time.perf_counter() - start_time
+        start = time.perf_counter()
+        loaded = load_orders(self.orders_file)
+        duration = time.perf_counter() - start
 
-        passed = (len(loaded) == 100) and (elapsed < 2.0)
-        record(
-            "Test 14: Delivery performance test",
-            "Delivery record loaded successfully within performance target",
-            f"Loaded {len(loaded)} records in {elapsed:.4f} s (target < 2.0 s)",
-            passed
-        )
-    except Exception as e:
-        record("Test 14: Delivery performance test", "Delivery record loaded successfully within performance target", str(e), False)
-
-finally:
-    # Restore original path and remove temporary file so real data is untouched
-    
-    if os.path.exists(TEST_FILE):
-        os.remove(TEST_FILE)
-
-# ---------------------------------------------------------
-# Print Final Summary (Fixed index check r[3] == "PASS")
-# ---------------------------------------------------------
-total_tests = len(results)
-passed_tests = sum(1 for r in results if r[3] == "PASS")
-failed_tests = total_tests - passed_tests
-print("\n" + "=" * 60)
-print(f"Summary: {passed_tests}/{total_tests} Passed, {failed_tests} Failed")
-print("=" * 60)
+        print(f"\n    [Timing] Loaded {len(loaded)} orders in {duration:.4f}s")
+        self.assertEqual(len(loaded), 100)
+        self.assertLess(duration, 2.0)
 
 
+if __name__ == "__main__":
+    print("=" * 60)
+    print("Increment 3 - Testing & Validation (unittest)")
+    print("=" * 60)
+    unittest.main(verbosity=2)
