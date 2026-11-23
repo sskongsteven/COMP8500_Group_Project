@@ -259,6 +259,15 @@ or written.
 | 4 | Return to the main menu | leaves the loop |
 | other | Invalid | prints "Selection Rejected: Invalid command token. Please select an option bounded between 1 and 4." |
 
+### select_order_from_list() -> str | None
+
+| Item | Detail |
+|---|---|
+| Input | None — reads a row number from the console |
+| Returns | The chosen order ID; `"BACK"` when 0 is entered; `None` when there are no orders to show |
+| Raises | Nothing — an out-of-range entry prints a "Selection Rejected" message and the list is shown again |
+| Side effects | Prints the numbered order list and reads console input; no file is written |
+
 ## 4.7 delivery.py
 
 The module owns the delivery and tracking area. It reads and writes through `storage.py`, takes the
@@ -340,6 +349,15 @@ Packing. A delivery moves through `Unassigned`, `Assigned`, `In Transit` and `De
 | 6 | Return to Main Menu | leaves the loop |
 | other | Invalid | prints "Selection Rejected: Invalid command token. Please select an option bounded between 1 and 6." |
 
+### select_order_from_list() -> str | None
+
+| Item | Detail |
+|---|---|
+| Input | None — reads a row number from the console |
+| Returns | The chosen order ID; `"BACK"` when 0 is entered; `None` when there are no orders to show |
+| Raises | Nothing — an out-of-range entry prints a "Selection Rejected" message and the list is shown again |
+| Side effects | Prints the numbered order list and reads console input; no file is written |
+
 ## 4.9 common.py
 
 The module holds the values and record types that the other modules share, so a status string or a
@@ -388,10 +406,8 @@ checker; it performs no runtime validation, so the rules stay in `inventory.py`,
 
 ## 4.10 web_app.py
 
-The module serves a browser interface over the same `inventory.py`, `order.py` and `delivery.py`, so
-the console menus and the page change the same two data files. It starts an HTTP server on
-`127.0.0.1:8000`, serves one page, and answers two JSON routes: `GET /` returns the page, `GET
-/api/state` returns the current data for it, and `POST /` applies the change the page asks for.
+The module serves a browser interface over the same `inventory.py`, `order.py` and `delivery.py`, so the console menus and the page change the same two data files. It starts an HTTP server on `127.0.0.1:8000`, serves one page at `GET /`, returns that page's data at `GET /api/state`, and applies changes through `POST /`.
+
 
 ### capture_initial_snapshot() -> None
 
