@@ -1,6 +1,6 @@
 # Increment 1 — Documentation
 
-Group 65 · COMP 8500SEF Software Engineering · 26 October 2026
+Group 65 · COMP 8500SEF Software Engineering · 23 November 2026
 
 ## 1 Inventory workflow
 
