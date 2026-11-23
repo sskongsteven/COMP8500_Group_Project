@@ -13,8 +13,12 @@ Course: COMP 8500SEF Software Engineering, HKMU · Group 65
 | Order fulfilment (Increment 2) |
 | Delivery management (Increment 3) |
 | Order tracking (Increment 3) |
+| Web interface (browser version of the same modules) |
 
-The project is built in three increments, and each one is reviewed before the next starts. The repository currently contains the completed product and inventory modules of Increment 1, and the order modules being developed for Increment 2.
+The project is built in three increments, and each one is reviewed before the next starts. All three
+are delivered: product and inventory management, order fulfilment, and delivery and tracking. The
+repository also contains a browser interface that reuses the same modules, and unit tests for each
+menu and increment.
 
 ## Repository structure
 
@@ -22,23 +26,30 @@ The project is built in three increments, and each one is reviewed before the ne
     ├── README.md
     ├── .gitignore
     ├── Products/
-    │   ├── storage.py          JSON read and write (atomic save)
-    │   ├── inventory.py        Product and stock rules
-    │   ├── inventory_menu.py   Console menu for inventory operations
-    │   ├── order.py            Order records and status transition rules
-    │   ├── order_menu.py       Console menu for order operations
-    │   ├── delivery.py         Delivery assignment and tracking rules
-    │   ├── delivery_menu.py    Console menu for delivery operations
-    │   ├── main_menu.py        Main entry point; routes to each module
-    │   ├── products.json       Sample product data
-    │   ├── orders.json         Sample order data
-    │   ├── test_increment1.py  Test script for Increment 1
-    │   └── test_increment2.py  Test script for Increment 2
+    │   ├── common.py             Shared status values and record types
+    │   ├── storage.py            JSON read and write (atomic save)
+    │   ├── inventory.py          Product and stock rules
+    │   ├── inventory_menu.py     Console menu for inventory operations
+    │   ├── order.py              Order records, packing and cancellation
+    │   ├── order_menu.py         Console menu for order operations
+    │   ├── delivery.py           Delivery assignment and tracking rules
+    │   ├── delivery_menu.py      Console menu for delivery operations
+    │   ├── main_menu.py          Main entry point; routes to each module
+    │   ├── web_app.py            Browser interface over the same modules
+    │   ├── products.json         Sample product data
+    │   ├── orders.json           Sample order data
+    │   ├── test_increment1.py    Unit tests for increment 1
+    │   ├── test_increment2.py    Unit tests for increment 2
+    │   ├── test_increment3.py    Unit tests for increment 3
+    │   ├── test_inventory_menu.py  Unit tests for the inventory menu
+    │   ├── test_order_menu.py      Unit tests for the order menu
+    │   ├── test_delivery_menu.py   Unit tests for the delivery menu
+    │   └── test_main_menu.py       Unit tests for the main menu
     └── docs/
-        ├── 03-modules.md       Reference for every public function
-        ├── 04-increment-1.md   Inventory workflow, test summary and limitations
-        ├── 05-increment-2.md   Order workflow, test summary and limitations
-        └── 06-increment-3.md   Delivery workflow, test summary and limitations
+        ├── 03-modules.md         Reference for every public function
+        ├── 04-increment-1.md     Inventory workflow, test summary and limitations
+        ├── 05-increment-2.md     Order workflow, test summary and limitations
+        └── 06-increment-3.md     Delivery workflow, test summary and limitations
 
 ## Requirements
 
@@ -59,10 +70,10 @@ At start-up the program imports inventory.py through inventory_menu.py. If that 
 To run the tests:
 
     cd Products
-    python test_increment1.py
-    python test_increment2.py
+    python -m unittest test_increment1 test_increment2 test_increment3
+    python -m unittest test_inventory_menu test_order_menu test_delivery_menu test_main_menu
 
-Each script runs its test cases against a temporary file (test_products.json and test_orders.json respectively) and prints a PASS or FAIL result for every case, followed by a summary. The temporary files are deleted at the end, so the real data files are never modified.
+The suites use the `unittest` framework. They run against temporary data files that they create and delete, so the real `products.json` and `orders.json` are never modified.
 
 ## Data files
 
