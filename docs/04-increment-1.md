@@ -4,12 +4,16 @@ Group 65 · COMP 8500SEF Software Engineering · 26 October 2026
 
 ## 1 Inventory workflow
 
-The program starts at main_menu.py, which offers three areas; only Product & Inventory Management is implemented, so options 2 and 3 print a placeholder. Inside the inventory submenu, all five operations follow the same path: validate the input, load the data file, change the list in memory, save the file, report the result. Only "view inventory" and "check availability" read without writing.
+The program starts at `main_menu.py`, which offers three areas. This document covers the inventory
+area (option 1); options 2 and 3 open the order and delivery menus, which are documented in
+`05-increment-2.md` and `06-increment-3.md`. Inside the inventory submenu, all five operations follow
+the same path: validate the input, load the data file, change the list in memory, save the file,
+report the result. Only "view inventory" and "check availability" read without writing.
 
     main_menu.py
       1 -> inventory_menu.py -> the five operations below
-      2 -> placeholder ("Order & Fulfilment Module is under development")
-      3 -> placeholder ("Delivery & Tracking Module is under development")
+      2 -> order_menu.py
+      3 -> delivery_menu.py
       0 -> exit
 
     Inside inventory_menu.py:
@@ -42,9 +46,12 @@ Two details follow from the code. The stock change validates the quantity after 
 
 ## 2 Test summary
 
-The tests are implemented in Products/test_increment1.py. Each case records its expected result, its actual result and a PASS or FAIL status, and the script prints a summary of how many passed. Tests run against a temporary file, test_products.json, which the script creates and deletes, so the real products.json is never modified. Results are printed as a PASS/FAIL summary rather than produced by a test framework.
+The tests are implemented in `Products/test_increment1.py` with the `unittest` framework, in 12 test
+methods. The suite runs against a temporary file, `test_products.json`, which it creates and deletes,
+so the real `products.json` is never modified. It can be run directly as a script or with
+`python -m unittest test_increment1`.
 
-| # | Test | Expected result | Result |
+| # | Test method | Expected result | Result |
 |---|---|---|---|
 | 1 | Add a valid product | Product receives a unique ID and appears in inventory | PASS |
 | 2 | Add a product with an empty name | Rejected, file unchanged | PASS |
@@ -53,7 +60,7 @@ The tests are implemented in Products/test_increment1.py. Each case records its 
 | 5 | Update product information | Changes reflected in inventory | PASS |
 | 6 | Add stock | Quantity in inventory increases | PASS |
 | 7 | Remove more stock than available | Rejected, quantity unchanged | PASS |
-| 8 | Select a non-existing product | Show error, no change | PASS |
+| 8 | Update a non-existing product | Show error, no change | PASS |
 | 9 | Check product availability | True when sufficient stock exists | PASS |
 | 10 | Close and reopen program | Products are correctly saved | PASS |
 | 11 | View inventory | Inventory records are displayed | PASS |
@@ -67,9 +74,5 @@ This section describes Increment 1 as delivered on 26 October.
 
 | # | Limitation | Effect |
 |---|---|---|
-| 1 | main_menu.py is preliminary | Options 2 and 3 print a placeholder until Increment 2 and Increment 3 are built |
-| 2 | Product identifiers are the highest existing number plus one | If deletion is added later, deleting the highest product would allow its identifier to be reused |
-| 3 | Price is stored as text | Amounts stay exact, but arithmetic must go through Decimal, not float |
-| 4 | Mock Mode is a development aid | When inventory.py cannot be imported the menu displays but nothing is read or written |
-| 5 | Non-numeric input is reported by Python | Entering text where a number is expected shows "invalid literal for int() with base 10" |
-| 6 | Only the inventory area is implemented | Ordering, order fulfilment, delivery and tracking are not built yet |
+| 1 | Product identifiers are the highest existing number plus one | If deletion is added later, deleting the highest product would allow its identifier to be reused |
+| 2 | A non-numeric entry shows the Python error message | Typing text where a number is expected prints "invalid literal for int() with base 10" instead of a clear hint |
