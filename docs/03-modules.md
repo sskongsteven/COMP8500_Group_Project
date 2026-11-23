@@ -4,32 +4,44 @@ Every public function listed here exists in the repository at the time of writin
 
 ## 4.1 storage.py
 
-The module constant `PRODUCTS_FILE` points to `products.json` by a relative path, so the
-program must be started from the `Products` directory.
+The module owns every read and write of the two JSON files.
+`load_products` and `save_products` work on `products.json`; `load_orders` and `save_orders` work on `orders.json`. Both pairs go through the private helpers `_load_records` and `_save_records`, which hold the missing-file, invalid-JSON and list checks.
 
-### load_products(path=PRODUCTS_FILE) -> list
+### load_products(path=PRODUCTS_FILE) -> list[Product]
 
 | Item | Detail |
 |---|---|
 | Input | path: the JSON file to read; defaults to `products.json` |
-| Returns | The saved list of product records |
-| Raises | `ValueError("<path> contains invalid JSON")` if the file does not parse; `ValueError("<path> must contain a list of products")` if the top level is not a list |
-| Side effects | Reads `products.json` but does not modify it. A missing file returns an empty list instead of raising |
+| Returns | The list of product records; an empty list on the first run, when the file does not exist |
+| Raises | `ValueError("<path> contains invalid JSON")` when the file cannot be parsed, and `ValueError("<path> must contain a list of products")` when the content is not a list |
+| Side effects | Reads `products.json` but does not modify it |
 
 ### save_products(products, path=PRODUCTS_FILE) -> None
 
 | Item | Detail |
 |---|---|
-| Input | products: the list of records to save; path: the JSON file to write (defaults to `products.json`) |
-| Returns | None — this function returns nothing |
-| Raises | None — it does not validate its input |
-| Side effects | Writes to a temporary file in the same directory, flushes it and syncs it to disk, then replaces `products.json` in a single step |
+| Input | products: the list of records to save; path: the JSON file to write |
+| Returns | None |
+| Raises | `OSError` from the write, not wrapped |
+| Side effects | Writes a temporary file in the same directory, syncs it, then replaces the target file in one step |
 
-The save is deliberately not an in-place edit. If the program crashes while writing, the original
-file is still intact and the temporary file is removed, so `products.json` can never be left half
-written. Loading applies the opposite rule: a file that does not parse is reported as an error
-rather than treated as an empty inventory, because an empty result would let the next save
-overwrite the customer's data.
+### load_orders(path=ORDERS_FILE) -> list[Order]
+
+| Item | Detail |
+|---|---|
+| Input | path: the JSON file to read; defaults to `orders.json` |
+| Returns | The list of order records; an empty list when the file does not exist |
+| Raises | `ValueError("<path> contains invalid JSON")` or `ValueError("<path> must contain a list of orders")` |
+| Side effects | Reads `orders.json` but does not modify it |
+
+### save_orders(orders, path=ORDERS_FILE) -> None
+
+| Item | Detail |
+|---|---|
+| Input | orders: the list of records to save; path: the JSON file to write |
+| Returns | None |
+| Raises | `OSError` from the write, not wrapped |
+| Side effects | Writes a temporary file in the same directory, syncs it, then replaces the target file in one step |
 
 ## 4.2 inventory.py
 
@@ -153,8 +165,7 @@ each choice, but no data is read or written.
 | Side effects | Reads console input, prints the menu and results, and calls the inventory functions, which may write `products.json` |
 
 The menu offers six choices: view inventory, add product, update product information, change stock,
-check availability and return to the main menu. Option 6 leaves the loop; because there is no
-`main.py` yet, the program ends at that point.
+check availability and return to the main menu. Option 6 leaves the loop and returns to `main_menu.py`.
 
 Numeric fields are converted with `int()` before they reach the inventory functions, so text that is
 not a number is reported with Python's own message (`invalid literal for int() with base 10: ...`)
@@ -184,138 +195,113 @@ Increment 2 and `delivery_menu` from Increment 3.
 
 ## 4.5 order.py
 
-The module constant `ORDERS_FILE` points to `orders.json` by a relative path. Six status constants
-define the only accepted status values: `STATUS_PENDING`, `STATUS_PACKED`,
-`STATUS_READY_FOR_DELIVERY`, `STATUS_OUT_FOR_DELIVERY`, `STATUS_DELIVERED` and `STATUS_CANCELLED`.
-Their values are the display strings used in the data file ("Pending", "Packed", "Ready for
-Delivery", "Out for Delivery", "Delivered", "Cancelled").
+The module holds the order rules. It reads and writes through `storage.py`, takes the status values
+and the record types from `common.py`, and needs `inventory.py` to check stock. It owns two order
+transitions only, Pending to Packed and Pending to Cancelled; the later states are applied by
+`delivery.py`.
 
-### load_orders(path=ORDERS_FILE) -> list
+### list_orders(path=ORDERS_FILE) -> list[Order]
 
 | Item | Detail |
 |---|---|
 | Input | path: the JSON file to read; defaults to `orders.json` |
-| Returns | The saved list of order records; an empty list when the file is missing |
-| Raises | Nothing — a file that cannot be parsed is also returned as an empty list |
+| Returns | The full list of order records |
+| Raises | Nothing of its own; `storage.py` raises on a damaged file |
 | Side effects | Reads `orders.json` but does not modify it |
 
-### save_orders(orders, path=ORDERS_FILE) -> None
-
-| Item | Detail |
-|---|---|
-| Input | orders: the list of order records to save; path: the JSON file to write |
-| Returns | None |
-| Raises | `OSError` or `TypeError` from the write, not wrapped |
-| Side effects | Writes `orders.json` in place with `indent=2` |
-
-### view_order_details(order_id, path=ORDERS_FILE) -> dict
+### view_order_details(order_id, path=ORDERS_FILE) -> Order
 
 | Item | Detail |
 |---|---|
 | Input | order_id: the identifier to look for, e.g. `O001` |
 | Returns | The matching order record, including items, total and status_history |
-| Raises | `ValueError("Order ID <id> was not found in the records.")` if no record has that identifier |
+| Raises | `ValueError("Order ID <id> was not found in the records.")` |
 | Side effects | Reads `orders.json` but does not modify it |
 
-### update_order_status(order_id, new_status, path=ORDERS_FILE) -> dict
+### pack_order(order_id, path=ORDERS_FILE, products_path=PRODUCTS_FILE) -> Order
 
 | Item | Detail |
 |---|---|
-| Input | order_id; new_status: one of the six status constants |
-| Returns | The updated order record. If the order already has that status, it is returned unchanged |
-| Raises | `ValueError("Invalid status identifier token: <status>")` for a value outside the six; a `Rule Violation` error when the transition is not allowed from the current status; `ValueError("Order ID <id> was not found.")` for an unknown identifier |
-| Side effects | Writes `orders.json` and appends `{"status": <new>, "at": <ISO timestamp>}` to status_history. Nothing is written when the request is rejected, or when the status is unchanged |
+| Input | order_id; path: the order file; products_path: the product file to deduct from |
+| Returns | The updated order record, now Packed |
+| Raises | `ValueError`: "Order ID <id> was not found.", "Only Pending orders can be packed. Current: <status>", "Cannot pack an order with no items.", "Order item quantity must be greater than zero." or "Insufficient stock for <id>: required <n>, available <n>." |
+| Side effects | Subtracts the quantities from the products, appends an entry to `status_history`, then writes `products.json` and `orders.json` |
 
-The five transition rules are enforced here rather than in the menu, so any future caller inherits
-them. Requesting the current status is treated as a no-op and adds no history entry, which keeps
-the history free of duplicate rows.
+### cancel_order(order_id, path=ORDERS_FILE) -> Order
+
+| Item | Detail |
+|---|---|
+| Input | order_id; path: the order file |
+| Returns | The updated order record, now Cancelled |
+| Raises | `ValueError`: "Order ID <id> was not found." or "Only Pending orders can be cancelled." |
+| Side effects | Appends an entry to `status_history`, writes `orders.json`, and does not touch stock |
 
 ## 4.6 order_menu.py
 
-At import time the module tries to import `order`. If that import fails it sets the internal
-reference to `None`, prints a warning and continues in Mock Mode, where choices are echoed but no
-order is read or written.
+At import time the module tries to import `order`. If that import fails it sets the internal reference
+to `None`, prints a warning and continues in Mock Mode, where choices are echoed but no order is read
+or written.
 
 ### display_order_menu() -> None
 
 | Item | Detail |
 |---|---|
-| Input | None — the function reads the menu choice, the order ID and (for option 3) a status choice from the console |
-| Returns | None — it returns when option 5 is chosen |
-| Raises | Nothing itself. A `ValueError` from `order.py` is caught and printed with a prefix: `Query Denied`, `Transition Rejected`, `Update Aborted` or `Cancellation Refused` |
-| Side effects | Prints the menu and results, and calls the order functions, which may write `orders.json` |
+| Input | None — the function reads the menu choice and the order ID from the console |
+| Returns | None — it returns when option 4 is chosen |
+| Raises | Nothing itself. A `ValueError` from `order.py` is caught and printed with a prefix: `Query Denied`, `Transition Rejected` or `Cancellation Refused` |
+| Side effects | Prints the menu and results, and calls the order functions, which may write `orders.json` and, when packing, `products.json` |
 
 | Option | Action | Calls |
 |---|---|---|
 | 1 | View order details | `view_order_details(order_id)`; prints header, items, total and status history |
-| 2 | Mark order as packed | `update_order_status(order_id, STATUS_PACKED)` |
-| 3 | Update order status | asks for 1 Ready for Delivery, 2 Out for Delivery or 3 Delivered, then `update_order_status` |
-| 4 | Cancel a pending order | `update_order_status(order_id, STATUS_CANCELLED)` |
-| 5 | Return to the main menu | leaves the loop |
-
-Packed and Cancelled have no entry of their own in option 3; they are reached through options 2
-and 4, which keeps the two rule-bound transitions visible in the menu.
+| 2 | Mark order as packed | `pack_order(order_id)`; checks stock, deducts it and saves both files |
+| 3 | Cancel a pending order | `cancel_order(order_id)` |
+| 4 | Return to the main menu | leaves the loop |
+| other | Invalid | prints "Selection Rejected: Invalid command token. Please select an option bounded between 1 and 4." |
 
 ## 4.7 delivery.py
 
-The module owns the delivery and tracking area. It reads and writes `orders.json` directly: every
-order already carries a `delivery` object. A delivery moves through four states: `Unassigned`, `Assigned`, `In Transit` and `Delivered`.
-
-### load_orders(path=ORDERS_FILE) -> list
-
-| Item | Detail |
-|---|---|
-| Input | path: the JSON file to read; defaults to `orders.json` |
-| Returns | The list of order records; an empty list when the file does not exist |
-| Raises | `ValueError("<path> contains invalid JSON")` when the file cannot be parsed |
-| Side effects | Reads `orders.json` but does not modify it |
-
-### save_orders(orders, path=ORDERS_FILE) -> None
-
-| Item | Detail |
-|---|---|
-| Input | orders: the list of order records to save; path: the JSON file to write |
-| Returns | None |
-| Raises | `OSError` from the write, not wrapped |
-| Side effects | Writes to a temporary file in the same directory, syncs it, then replaces `orders.json` in one step |
+The module owns the delivery and tracking area. It reads and writes through `storage.py`, takes the
+status values and the record types from `common.py`, and applies the three order states that follow
+Packing. A delivery moves through `Unassigned`, `Assigned`, `In Transit` and `Delivered`.
 
 ### find_order(order_id, path=ORDERS_FILE) -> tuple
 
 | Item | Detail |
 |---|---|
-| Input | order_id: the identifier to look for, e.g. `O001` |
+| Input | order_id: the identifier to look for |
 | Returns | A pair `(orders, order)`: the whole list and the matching record |
-| Raises | `ValueError("Order not found.")` if no record has that identifier |
+| Raises | `ValueError("Order not found.")` |
 | Side effects | Reads `orders.json` but does not modify it |
 
-### assign_delivery(order_id) -> None
+### assign_delivery(order_id, path=ORDERS_FILE) -> None
 
 | Item | Detail |
 |---|---|
 | Input | order_id; the delivery method is read from the console, and a driver ID when the method is Courier |
 | Returns | None — it prints "Delivery assigned successfully." |
 | Raises | `ValueError`: "Order not found.", "Only Packed orders can be assigned.", "Invalid delivery method." or "Invalid driver." |
-| Side effects | Sets the method, the driver and `delivery_status = "Assigned"`; sets the order status to "Ready for Delivery"; appends the change to `status_history`; writes `orders.json` |
+| Side effects | Sets the method, the driver and `delivery_status = "Assigned"`, moves the order to "Ready for Delivery", appends to `status_history` and writes `orders.json` |
 
-### start_delivery(order_id) -> None
+### start_delivery(order_id, path=ORDERS_FILE) -> None
 
 | Item | Detail |
 |---|---|
 | Input | order_id |
 | Returns | None — it prints "Delivery started successfully." |
 | Raises | `ValueError`: "Order not found." or "Delivery must be Assigned." |
-| Side effects | Sets `delivery_status = "In Transit"` and the order status to "Out for Delivery"; appends the change to `status_history`; writes `orders.json` |
+| Side effects | Sets `delivery_status = "In Transit"` and the order to "Out for Delivery", appends to `status_history` and writes `orders.json` |
 
-### complete_delivery(order_id) -> None
+### complete_delivery(order_id, path=ORDERS_FILE) -> None
 
 | Item | Detail |
 |---|---|
 | Input | order_id |
 | Returns | None — it prints "Delivery completed successfully." |
 | Raises | `ValueError`: "Order not found." or "Delivery must be In Transit." |
-| Side effects | Sets `delivery_status = "Delivered"` and the order status to "Delivered"; appends the change to `status_history`; writes `orders.json` |
+| Side effects | Sets `delivery_status = "Delivered"` and the order to "Delivered", appends to `status_history` and writes `orders.json` |
 
-### view_delivery(order_id) -> None
+### view_delivery(order_id, path=ORDERS_FILE) -> None
 
 | Item | Detail |
 |---|---|
@@ -324,7 +310,7 @@ order already carries a `delivery` object. A delivery moves through four states:
 | Raises | `ValueError("Order not found.")` |
 | Side effects | Reads `orders.json` but does not modify it |
 
-### view_tracking(order_id) -> None
+### view_tracking(order_id, path=ORDERS_FILE) -> None
 
 | Item | Detail |
 |---|---|
@@ -353,3 +339,92 @@ order already carries a `delivery` object. A delivery moves through four states:
 | 5 | View Order Tracking | `view_tracking(order_id)`; prints the whole status history |
 | 6 | Return to Main Menu | leaves the loop |
 | other | Invalid | prints "Selection Rejected: Invalid command token. Please select an option bounded between 1 and 6." |
+
+## 4.9 common.py
+
+The module holds the values and record types that the other modules share, so a status string or a
+field name is written once. It also provides three factory functions, which return a fresh dictionary
+each time rather than a shared template.
+
+| Name | Value |
+|---|---|
+| `STATUS_PENDING` … `STATUS_CANCELLED` | The six order statuses: Pending, Packed, Ready for Delivery, Out for Delivery, Delivered, Cancelled |
+| `ORDER_STATUSES` | A tuple of the six order statuses |
+| `DELIVERY_STATUS_UNASSIGNED` … `DELIVERY_STATUS_DELIVERED` | The four delivery statuses; `DELIVERY_STATUS_DELIVERED` is the same string as `STATUS_DELIVERED` |
+| `DELIVERY_STATUSES` | A tuple of the four delivery statuses |
+| `DELIVERY_METHOD_COURIER`, `DELIVERY_METHOD_SELF_PICKUP` | "Courier" and "Self Pickup" |
+
+The module also declares the record shapes with `TypedDict`: `Product`, `OrderLine`, `Delivery`,
+`StatusHistoryEntry` and `Order`. A `TypedDict` documents the fields for the reader and the type
+checker; it performs no runtime validation, so the rules stay in `inventory.py`, `order.py` and
+`delivery.py`.
+
+### new_product(product_id, product_name, price, stock_quantity) -> Product
+
+| Item | Detail |
+|---|---|
+| Input | The four field values of a product record |
+| Returns | A new `Product` dictionary |
+| Raises | Nothing |
+| Side effects | None — it only builds a dictionary |
+
+### new_delivery() -> Delivery
+
+| Item | Detail |
+|---|---|
+| Input | None |
+| Returns | A new `Delivery` dictionary with method Courier, no driver and status Unassigned |
+| Raises | Nothing |
+| Side effects | None — a fresh dictionary is returned for each call, so two orders never share one |
+
+### new_status_history_entry(status, timestamp) -> StatusHistoryEntry
+
+| Item | Detail |
+|---|---|
+| Input | status: the new status; timestamp: an ISO date and time string |
+| Returns | A new `StatusHistoryEntry` dictionary |
+| Raises | Nothing |
+| Side effects | None — it only builds a dictionary |
+
+## 4.10 web_app.py
+
+The module serves a browser interface over the same `inventory.py`, `order.py` and `delivery.py`, so
+the console menus and the page change the same two data files. It starts an HTTP server on
+`127.0.0.1:8000`, serves one page, and answers two JSON routes: `GET /` returns the page, `GET
+/api/state` returns the current data for it, and `POST /` applies the change the page asks for.
+
+### capture_initial_snapshot() -> None
+
+| Item | Detail |
+|---|---|
+| Input | None |
+| Returns | None |
+| Raises | Nothing |
+| Side effects | Reads both data files once and keeps a copy in memory, so the page can restore the starting data |
+
+### build_state_payload() -> dict
+
+| Item | Detail |
+|---|---|
+| Input | None |
+| Returns | A dictionary holding the products, the orders and the delivery state, ready to be sent as JSON |
+| Raises | Nothing of its own; a damaged data file raises from `storage.py` |
+| Side effects | Reads both data files but does not modify them |
+
+### assign_delivery_non_interactive(order_id, ...) -> None
+
+| Item | Detail |
+|---|---|
+| Input | order_id and the chosen method and driver, taken from the page instead of the console |
+| Returns | None |
+| Raises | The same `ValueError` messages as `delivery.assign_delivery` |
+| Side effects | Applies the same change as the console menu: `orders.json` is written |
+
+### run_server(host="127.0.0.1", port=8000, open_browser=True) -> None
+
+| Item | Detail |
+|---|---|
+| Input | host and port to listen on; open_browser: whether to open the page automatically |
+| Returns | None — it runs until the process is stopped |
+| Raises | `OSError` when the port is already in use |
+| Side effects | Starts the HTTP server, serves the page and the JSON routes, and writes the data files when a change is applied |
