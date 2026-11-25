@@ -52,26 +52,26 @@ tell which step failed: "Assignment Rejected", "Transition Rejected", "Completio
 
 ## 2 Test summary
 
-The tests are implemented in `Products/test_increment3.py` with the `unittest` framework, in 14 test
-methods. They run against temporary copies of `orders.json` and `products.json`, so the real data
-files are never modified.
+The tests are implemented in `Products/test_increment3.py` with the `unittest` framework, in 14 test methods. The suite runs against temporary copies of `orders.json` and `products.json`, which it creates and deletes, so the real data files are never modified. It can be run directly as a script or with `python -m unittest test_increment3`.
 
-| # | Test method | Expected result |
-|---|---|---|
-| 1 | `test_01_view_delivery_details` | Method, driver and delivery status are printed |
-| 2 | `test_02_view_order_tracking` | Order status, delivery status and history are printed |
-| 3 | `test_03_assign_courier_delivery` | Delivery becomes Assigned; order becomes Ready for Delivery |
-| 4 | `test_04_assign_self_pickup_delivery` | Driver fields stay null; order becomes Ready for Delivery |
-| 5 | `test_05_reject_assign_non_packed_order` | Rejected: "Only Packed orders can be assigned." |
-| 6 | `test_06_reject_invalid_driver_selection` | Rejected: "Invalid driver." |
-| 7 | `test_07_start_delivery_after_assignment` | Delivery becomes In Transit; order becomes Out for Delivery |
-| 8 | `test_08_reject_start_delivery_before_assignment` | Rejected: "Delivery must be Assigned." |
-| 9 | `test_09_complete_delivery_successfully` | Delivery and order both become Delivered |
-| 10 | `test_10_reject_complete_delivery_before_in_transit` | Rejected: "Delivery must be In Transit." |
-| 11 | `test_11_reopen_program_persistence` | Delivery state and history survive a reload |
-| 12 | `test_12_reject_invalid_order_id` | Rejected: "Order not found." |
-| 13 | `test_13_delivery_status_history_verification` | One entry per step, with timestamps |
-| 14 | `test_14_performance_load_100_delivery_orders` | 100 orders loaded inside the two-second target |
+| # | Test method | Expected result | Result |
+|---|---|---|---|
+| 1 | `test_01_view_delivery_details` | Method, driver and delivery status are printed | PASS |
+| 2 | `test_02_view_order_tracking` | Order status, delivery status and history are printed | PASS |
+| 3 | `test_03_assign_courier_delivery` | Delivery becomes Assigned; order becomes Ready for Delivery | PASS |
+| 4 | `test_04_assign_self_pickup_delivery` | Driver fields stay null; order becomes Ready for Delivery | PASS |
+| 5 | `test_05_reject_assign_non_packed_order` | Rejected: "Only Packed orders can be assigned." | PASS |
+| 6 | `test_06_reject_invalid_driver_selection` | Rejected: "Invalid driver." | PASS |
+| 7 | `test_07_start_delivery_after_assignment` | Delivery becomes In Transit; order becomes Out for Delivery | PASS |
+| 8 | `test_08_reject_start_delivery_before_assignment` | Rejected: "Delivery must be Assigned." | PASS |
+| 9 | `test_09_complete_delivery_successfully` | Delivery and order both become Delivered | PASS |
+| 10 | `test_10_reject_complete_delivery_before_in_transit` | Rejected: "Delivery must be In Transit." | PASS |
+| 11 | `test_11_reopen_program_persistence` | Delivery state and history survive a reload | PASS |
+| 12 | `test_12_reject_invalid_order_id` | Rejected: "Order not found." | PASS |
+| 13 | `test_13_delivery_status_history_verification` | One entry per step, with timestamps | PASS |
+| 14 | `test_14_performance_load_100_delivery_orders` | 100 orders loaded within 2 seconds | PASS |
+
+Overall: 14 of 14 passed. The performance case loaded 100 delivery orders in 0.0009 seconds.
 
 ## 3 Limitations
 
