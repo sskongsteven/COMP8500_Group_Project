@@ -63,7 +63,7 @@ The data files are opened by their relative paths (products.json and orders.json
     cd Products
     python main_menu.py
 
-Product and Inventory Management is complete. Order and Fulfilment Management provides its own menu with view, pack, status update and cancel operations. Delivery and Tracking Management is a placeholder until Increment 3.
+All three areas are implemented. Product and Inventory Management covers viewing, adding products,updating details and changing stock. Order and Fulfilment Management offers view, pack, cancel and return; packing deducts the stock and writes both files. Delivery and Tracking Management offers view, assign, start, complete and tracking, and each delivery step moves the order on as well.
 
 At start-up the program imports inventory.py through inventory_menu.py. If that import fails, a warning is printed and the inventory menu runs in Mock Mode: the menu responds, but nothing is loaded or saved.
 
