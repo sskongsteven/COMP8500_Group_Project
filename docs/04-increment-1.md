@@ -66,7 +66,7 @@ so the real `products.json` is never modified. It can be run directly as a scrip
 | 11 | View inventory | Inventory records are displayed | PASS |
 | 12 | Performance test (inventory with 200 products) | 200 products loaded within 2 seconds | PASS |
 
-Overall: 12 of 12 passed. The performance case loaded 200 products in 0.0002 seconds, well inside the two-second target.
+Overall: 12 of 12 passed. The performance case loaded 200 products in 0.0002 seconds.
 
 ## 3 Limitations
 
