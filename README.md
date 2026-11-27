@@ -44,13 +44,15 @@ menu and increment.
     │   ├── test_inventory_menu.py  Unit tests for the inventory menu
     │   ├── test_order_menu.py      Unit tests for the order menu
     │   ├── test_delivery_menu.py   Unit tests for the delivery menu
-    │   └── test_main_menu.py       Unit tests for the main menu
+    │   ├── test_main_menu.py       Unit tests for the main menu
+    │   └── test_web_app.py         Unit tests for the web interface
     └── docs/
         ├── 03-modules.md         Reference for every public function
         ├── 04-increment-1.md     Inventory workflow, test summary and limitations
         ├── 05-increment-2.md     Order workflow, test summary and limitations
         ├── 06-increment-3.md     Delivery workflow, test summary and limitations
-        └── 07-menu-tests.md      Menu tests: the four suites and their results
+        ├── 07-menu-tests.md      Menu tests: the four suites and their results
+        └── 08-web-app-tests.md   Web interface tests: endpoints, workflow and reset
 
 ## Requirements
 
@@ -73,6 +75,7 @@ To run the tests:
     cd Products
     python -m unittest test_increment1 test_increment2 test_increment3
     python -m unittest test_inventory_menu test_order_menu test_delivery_menu test_main_menu
+    python -m unittest test_web_app
 
 The suites use the `unittest` framework. They run against temporary data files that they create and delete, so the real `products.json` and `orders.json` are never modified.
 
@@ -159,6 +162,7 @@ Orders are not created inside the application in this release; the menus work fr
 | docs/05-increment-2.md | Order workflow, test summary and limitations |
 | docs/06-increment-3.md | Delivery workflow, test summary and limitations |
 | docs/07-menu-tests.md | Menu test suites: what each covers and the results |
+| docs/08-web-app-tests.md | The web interface tests: endpoints, workflow and reset |
 
 ## Open items
 
