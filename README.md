@@ -49,7 +49,8 @@ menu and increment.
         ├── 03-modules.md         Reference for every public function
         ├── 04-increment-1.md     Inventory workflow, test summary and limitations
         ├── 05-increment-2.md     Order workflow, test summary and limitations
-        └── 06-increment-3.md     Delivery workflow, test summary and limitations
+        ├── 06-increment-3.md     Delivery workflow, test summary and limitations
+        └── 07-menu-tests.md      Menu tests: the four suites and their results
 
 ## Requirements
 
@@ -63,7 +64,7 @@ The data files are opened by their relative paths (products.json and orders.json
     cd Products
     python main_menu.py
 
-All three areas are implemented. Product and Inventory Management covers viewing, adding products,updating details and changing stock. Order and Fulfilment Management offers view, pack, cancel and return; packing deducts the stock and writes both files. Delivery and Tracking Management offers view, assign, start, complete and tracking, and each delivery step moves the order on as well.
+All three areas are implemented. Product and Inventory Management covers viewing, adding products, updating details and changing stock. Order and Fulfilment Management offers view, pack, cancel and return; packing deducts the stock and writes both files. Delivery and Tracking Management offers view, assign, start, complete and tracking, and each delivery step moves the order on as well.
 
 At start-up the program imports inventory.py through inventory_menu.py. If that import fails, a warning is printed and the inventory menu runs in Mock Mode: the menu responds, but nothing is loaded or saved.
 
@@ -157,6 +158,7 @@ Orders are not created inside the application in this release; the menus work fr
 | docs/04-increment-1.md | Inventory workflow, test summary and limitations |
 | docs/05-increment-2.md | Order workflow, test summary and limitations |
 | docs/06-increment-3.md | Delivery workflow, test summary and limitations |
+| docs/07-menu-tests.md | Menu test suites: what each covers and the results |
 
 ## Open items
 
