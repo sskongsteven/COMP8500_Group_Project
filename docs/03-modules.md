@@ -406,8 +406,27 @@ checker; it performs no runtime validation, so the rules stay in `inventory.py`,
 
 ## 4.10 web_app.py
 
-The module serves a browser interface over the same `inventory.py`, `order.py` and `delivery.py`, so the console menus and the page change the same two data files. It starts an HTTP server on `127.0.0.1:8000`, serves one page at `GET /`, returns that page's data at `GET /api/state`, and applies changes through `POST /`.
+The module serves a browser interface over the same `inventory.py`, `order.py` and `delivery.py`, so
+the console menus and the page change the same two data files. It starts an HTTP server on
+`127.0.0.1:8000`; `GET /` serves the page and `GET /api/state` returns the data it displays, while
+every change is sent as JSON to a route of its own.
 
+| Method | Path | Effect |
+|---|---|---|
+| GET | `/` or `/index.html` | Serves the page |
+| GET | `/api/state` | Returns the products, the orders and the delivery state as JSON |
+| POST | `/api/products` | Adds a product; answers 201 |
+| PUT | `/api/products/{id}` | Updates the name and/or the price |
+| POST | `/api/products/{id}/stock` | Applies a stock change |
+| POST | `/api/orders/{id}/pack` | Packs the order and deducts stock |
+| POST | `/api/orders/{id}/cancel` | Cancels a Pending order |
+| POST | `/api/orders/{id}/delivery/assign` | Assigns the method and driver given in the request body |
+| POST | `/api/orders/{id}/delivery/start` | Starts the delivery |
+| POST | `/api/orders/{id}/delivery/complete` | Completes the delivery |
+| POST | `/api/reset` | Restores the data captured at start-up |
+
+A rejected request answers 400 with an `error` message taken from the raised `ValueError`; an unknown
+path answers 404.
 
 ### capture_initial_snapshot() -> None
 
@@ -423,18 +442,18 @@ The module serves a browser interface over the same `inventory.py`, `order.py` a
 | Item | Detail |
 |---|---|
 | Input | None |
-| Returns | A dictionary holding the products, the orders and the delivery state, ready to be sent as JSON |
+| Returns | A dictionary with the products, the orders, the driver table, the delivery methods and both status lists, ready to be sent as JSON |
 | Raises | Nothing of its own; a damaged data file raises from `storage.py` |
 | Side effects | Reads both data files but does not modify them |
 
-### assign_delivery_non_interactive(order_id, ...) -> None
+### assign_delivery_non_interactive(order_id, delivery_method, driver_id=None) -> dict
 
 | Item | Detail |
 |---|---|
-| Input | order_id and the chosen method and driver, taken from the page instead of the console |
-| Returns | None |
-| Raises | The same `ValueError` messages as `delivery.assign_delivery` |
-| Side effects | Applies the same change as the console menu: `orders.json` is written |
+| Input | order_id; delivery_method: Courier or Self Pickup; driver_id: required for Courier and ignored for Self Pickup |
+| Returns | The updated order record, now Ready for Delivery |
+| Raises | `ValueError`: "Order not found.", "Delivery can only be assigned to a Packed order.", "Invalid delivery method. Choose Courier or Self Pickup." or "Please select a valid driver for Courier delivery." |
+| Side effects | Sets the method, the driver and `delivery_status = "Assigned"`, moves the order to "Ready for Delivery", appends to `status_history` and writes `orders.json` |
 
 ### run_server(host="127.0.0.1", port=8000, open_browser=True) -> None
 
