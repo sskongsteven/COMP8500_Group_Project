@@ -53,18 +53,18 @@ so the real `products.json` is never modified. It can be run directly as a scrip
 
 | # | Test method | Expected result | Result |
 |---|---|---|---|
-| 1 | Add a valid product | Product receives a unique ID and appears in inventory | PASS |
-| 2 | Add a product with an empty name | Rejected, file unchanged | PASS |
-| 3 | Negative price | Rejected, file unchanged | PASS |
-| 4 | Negative starting stock | Rejected, file unchanged | PASS |
-| 5 | Update product information | Changes reflected in inventory | PASS |
-| 6 | Add stock | Quantity in inventory increases | PASS |
-| 7 | Remove more stock than available | Rejected, quantity unchanged | PASS |
-| 8 | Update a non-existing product | Show error, no change | PASS |
-| 9 | Check product availability | True when sufficient stock exists | PASS |
-| 10 | Close and reopen program | Products are correctly saved | PASS |
-| 11 | View inventory | Inventory records are displayed | PASS |
-| 12 | Performance test (inventory with 200 products) | 200 products loaded within 2 seconds | PASS |
+| 1 | `test_01_add_valid_product` | Product receives a unique ID and appears in inventory | PASS |
+| 2 | `test_02_add_product_empty_name_rejected` | Rejected, file unchanged | PASS |
+| 3 | `test_03_add_product_negative_price_rejected` | Rejected, file unchanged | PASS |
+| 4 | `test_04_add_product_negative_starting_stock_rejected` | Rejected, file unchanged | PASS |
+| 5 | `test_05_update_product_information` | Changes reflected in inventory | PASS |
+| 6 | `test_06_add_stock` | Quantity in inventory increases | PASS |
+| 7 | `test_07_remove_more_stock_than_available_rejected` | Rejected, quantity unchanged | PASS |
+| 8 | `test_08_update_non_existing_product_rejected` | Show error, no change | PASS |
+| 9 | `test_09_check_product_availability` | True when sufficient stock exists | PASS |
+| 10 | `test_10_close_and_reopen_persistence` | Products are correctly saved | PASS |
+| 11 | `test_11_view_inventory` | Inventory records are displayed | PASS |
+| 12 | `test_12_performance_load_200_products` | 200 products loaded within 2 seconds | PASS |
 
 Overall: 12 of 12 passed. The performance case loaded 200 products in 0.0002 seconds.
 
