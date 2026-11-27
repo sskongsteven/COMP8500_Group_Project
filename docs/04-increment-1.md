@@ -1,6 +1,6 @@
 # Increment 1 — Documentation
 
-Group 65 · COMP 8500SEF Software Engineering · 23 November 2026
+Group 65 · COMP 8500SEF Software Engineering · 28 November 2026
 
 ## 1 Inventory workflow
 
@@ -42,13 +42,13 @@ report the result. Only "view inventory" and "check availability" read without w
 | 5 | Check availability | quantity greater than zero | No |
 | 6 | Return | none | No |
 
-Two details follow from the code. The stock change validates the quantity after the adjustment, so removing 20 units from a stock of 5 is refused before anything is written. Every save goes through a temporary file that is synced to disk and then renamed over products.json, so a crash during a write cannot leave a half-written file.
+The stock change validates the quantity after the adjustment, so removing 20 units from a stock of 5 is refused before anything is written. Every save goes through a temporary file that is synced to disk and then replaces products.json, so a crash during a write cannot leave a half-written file.
 
 ## 2 Test summary
 
 The tests are implemented in `Products/test_increment1.py` with the `unittest` framework, in 12 test
-methods. The suite runs against a temporary file, `test_products.json`, which it creates and deletes,
-so the real `products.json` is never modified. It can be run directly as a script or with
+methods. The suite runs against a temporary file, `test_products_unittest.json`, which it creates and
+deletes, so the real `products.json` is never modified. It can be run directly as a script or with
 `python -m unittest test_increment1`.
 
 | # | Test method | Expected result | Result |
@@ -66,7 +66,7 @@ so the real `products.json` is never modified. It can be run directly as a scrip
 | 11 | `test_11_view_inventory` | Inventory records are displayed | PASS |
 | 12 | `test_12_performance_load_200_products` | 200 products loaded within 2 seconds | PASS |
 
-Overall: 12 of 12 passed. The performance case loaded 200 products in 0.0002 seconds.
+Overall: 12 of 12 passed. The performance case loaded 200 products in 0.0005 seconds.
 
 ## 3 Limitations
 
