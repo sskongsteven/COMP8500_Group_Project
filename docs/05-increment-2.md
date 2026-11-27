@@ -1,6 +1,6 @@
 # Increment 2 — Documentation
 
-Group 65 · COMP 8500SEF Software Engineering · 23 November 2026
+Group 65 · COMP 8500SEF Software Engineering · 28 November 2026
 
 ## 1 Order workflow
 
@@ -27,7 +27,7 @@ states belong to the delivery area, which moves the order on as the delivery pro
 | Pack | every quantity is above zero | quantities are combined per product before the stock check | "Order item quantity must be greater than zero." |
 | Pack | stock covers every item | nothing is written if one item fails | "Insufficient stock for P001: required 3, available 1." |
 | Cancel | status is Pending | status becomes Cancelled, stock untouched | "Only Pending orders can be cancelled." |
-| Any | the order ID exists | — | "Order ID O001 was not found." |
+| Any | the order ID exists | — | pack and cancel: "Order ID O001 was not found."; view: "Order ID O001 was not found in the records." |
 
 Two details follow from the code. Packing validates every item before it writes anything, so a failure
 leaves both files unchanged. And cancelling is only possible while the order is Pending, which is why
@@ -42,7 +42,10 @@ is appended to `status_history`.
 
 ## 2 Test summary
 
-The tests are implemented in `Products/test_increment2.py` with the `unittest` framework, in 19 test methods. The suite runs against temporary copies of `test_products.json` and `test_orders.json`, which it creates and deletes, so the real `products.json` and `orders.json` are never modified. It can be run directly as a script or with `python -m unittest test_increment2`.
+The tests are implemented in `Products/test_increment2.py` with the `unittest` framework, in 19 test
+methods. The suite runs against two temporary files, `test_products_unittest.json` and
+`test_orders_unittest.json`, which it creates and deletes, so the real `products.json` and `orders.json`
+are never modified. It can be run directly as a script or with `python -m unittest test_increment2`.
 
 | # | Test method | Expected result | Result |
 |---|---|---|---|
