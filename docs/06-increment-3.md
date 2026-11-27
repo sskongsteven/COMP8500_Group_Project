@@ -1,6 +1,6 @@
 # Increment 3 — Documentation
 
-Group 65 · COMP 8500SEF Software Engineering · 23 November 2026
+Group 65 · COMP 8500SEF Software Engineering · 28 November 2026
 
 ## 1 Delivery workflow
 
@@ -52,7 +52,10 @@ tell which step failed: "Assignment Rejected", "Transition Rejected", "Completio
 
 ## 2 Test summary
 
-The tests are implemented in `Products/test_increment3.py` with the `unittest` framework, in 14 test methods. The suite runs against temporary copies of `orders.json` and `products.json`, which it creates and deletes, so the real data files are never modified. It can be run directly as a script or with `python -m unittest test_increment3`.
+The tests are implemented in `Products/test_increment3.py` with the `unittest` framework, in 14 test
+methods. The suite runs against a temporary orders file, `test_orders_inc3_unittest.json`, which it
+creates and deletes, so the real `orders.json` is never modified. It can be run directly as a script or
+with `python -m unittest test_increment3`.
 
 | # | Test method | Expected result | Result |
 |---|---|---|---|
